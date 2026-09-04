@@ -11,7 +11,7 @@
       .zone{fill:#fff;stroke:#dce6e1;stroke-width:1.5}.zone-title{font-size:13px;font-weight:750;letter-spacing:1.4px}
       .card{fill:#fff;stroke:#cadbd3;stroke-width:1.5;filter:url(#shadow)}
       .agent{fill:#f1faf5;stroke:#83b59e}.human{fill:#fff8e8;stroke:#d7a848}.engine{fill:#f3f6fb;stroke:#8da4c4}.ready{fill:#173f32;stroke:#173f32}
-      .node-title{font-size:17px;font-weight:750}.node-copy{font-size:13px;fill:#60736b}.tag{font-size:11px;font-weight:750;letter-spacing:.7px}
+      .node-title{font-size:17px;font-weight:750}.node-copy{font-size:13px;fill:#60736b}.tag{font-size:11px;font-weight:750;letter-spacing:.7px}.on-dark{fill:#fff}.on-dark-soft{fill:#bfe7d3}
       .line{fill:none;stroke:#6d7e77;stroke-width:2;marker-end:url(#arrow)}.dash{stroke-dasharray:7 6}.label{font-size:11px;font-weight:650;fill:#5d7068}
     </style>
   </defs>
@@ -48,6 +48,6 @@
   <text x="80" y="743" class="zone-title" fill="#916f1c">HUMAN AUTHORITY + VERIFIED OUTCOME</text>
   <rect x="112" y="767" width="290" height="62" rx="16" class="card human"/><text x="136" y="793" class="tag" fill="#916f1c">STRANDS HUMAN-IN-THE-LOOP</text><text x="136" y="815" class="node-copy">Protected action pauses execution</text>
   <rect x="510" y="767" width="250" height="62" rx="16" class="card human"/><text x="534" y="793" class="node-title">Caregiver decides</text><text x="534" y="815" class="node-copy">Approve or decline</text>
-  <rect x="1014" y="757" width="300" height="82" rx="18" class="card ready"/><text x="1038" y="789" class="tag" fill="#bfe7d3">VERIFIED OUTCOME</text><text x="1038" y="818" class="node-title" fill="#fff">100% visit readiness</text>
+  <rect x="1014" y="757" width="300" height="82" rx="18" class="card ready"/><text x="1038" y="789" class="tag on-dark-soft">VERIFIED OUTCOME</text><text x="1038" y="818" class="node-title on-dark">100% visit readiness</text>
   <path d="M881 638V701H257V759" class="line dash"/><text x="515" y="693" class="label">protected disclosure attempt</text><path d="M402 798H502" class="line"/><path d="M760 798H1006" class="line"/><text x="820" y="783" class="label">resume · verify · close</text>
 </svg>
