@@ -16,6 +16,8 @@ Built for the **Everyday Agents** track of the Agents for Humans Hackathon.
 
 ## Architecture
 
+![Care Relay architecture](docs/architecture.svg)
+
 Care Relay uses a Bedrock-backed Strands Coordinator, a separately permissioned
 Verification Agent exposed through agents-as-tools, native Strands human-in-the-loop
 interruption, durable sessions, and lifecycle hooks. A deterministic application

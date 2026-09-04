@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Care Relay system architecture</title>
+  <desc id="desc">A provider event enters two Strands agents on Amazon Bedrock. Restricted tools feed a deterministic safety and state layer. Strands human-in-the-loop pauses protected actions for a caregiver decision. Verified evidence alone reaches one hundred percent visit readiness.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1d352d" flood-opacity=".10"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#6d7e77"/></marker>
+    <style>
+      text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#17362c}
+      .eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#5d756c}
+      .title{font-size:34px;font-weight:750}.subtitle{font-size:16px;fill:#64766f}
+      .zone{fill:#fff;stroke:#dce6e1;stroke-width:1.5}.zone-title{font-size:13px;font-weight:750;letter-spacing:1.4px}
+      .card{fill:#fff;stroke:#cadbd3;stroke-width:1.5;filter:url(#shadow)}
+      .agent{fill:#f1faf5;stroke:#83b59e}.human{fill:#fff8e8;stroke:#d7a848}.engine{fill:#f3f6fb;stroke:#8da4c4}.ready{fill:#173f32;stroke:#173f32}
+      .node-title{font-size:17px;font-weight:750}.node-copy{font-size:13px;fill:#60736b}.tag{font-size:11px;font-weight:750;letter-spacing:.7px}
+      .line{fill:none;stroke:#6d7e77;stroke-width:2;marker-end:url(#arrow)}.dash{stroke-dasharray:7 6}.label{font-size:11px;font-weight:650;fill:#5d7068}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#f7f8f5"/>
+  <text x="70" y="66" class="eyebrow">CARE RELAY · AGENTS FOR HUMANS</text>
+  <text x="70" y="111" class="title">Judgment, authority, and verification stay separate.</text>
+  <text x="70" y="143" class="subtitle">Strands agents coordinate the work. Deterministic code controls permission and truth.</text>
+
+  <rect x="55" y="182" width="1330" height="214" rx="24" class="zone"/>
+  <text x="80" y="214" class="zone-title" fill="#2a7255">AGENTIC JUDGMENT · STRANDS AGENTS + AMAZON BEDROCK</text>
+  <rect x="88" y="245" width="230" height="105" rx="16" class="card"/>
+  <text x="112" y="279" class="tag" fill="#916f1c">EXTERNAL EVENT</text><text x="112" y="308" class="node-title">Provider message</text><text x="112" y="332" class="node-copy">Appointment moved</text>
+  <rect x="406" y="235" width="310" height="125" rx="18" class="card agent"/>
+  <text x="430" y="269" class="tag" fill="#2a7255">STRANDS AGENT 01</text><text x="430" y="300" class="node-title">Visit Coordinator</text><text x="430" y="326" class="node-copy">Interprets · plans · delegates · replans</text><text x="430" y="347" class="node-copy">Claude Sonnet 4.6 via Bedrock</text>
+  <rect x="820" y="235" width="310" height="125" rx="18" class="card agent"/>
+  <text x="844" y="269" class="tag" fill="#2a7255">STRANDS AGENT 02</text><text x="844" y="300" class="node-title">Independent Verifier</text><text x="844" y="326" class="node-copy">Challenges claims with restricted tools</text><text x="844" y="347" class="node-copy">Cannot schedule, disclose, or approve</text>
+  <rect x="1190" y="245" width="160" height="105" rx="16" class="card"/>
+  <text x="1214" y="279" class="tag" fill="#536d94">LIFECYCLE</text><text x="1214" y="308" class="node-title">Trace hooks</text><text x="1214" y="332" class="node-copy">Provenance</text>
+  <path d="M318 298H398" class="line"/><path d="M716 298H812" class="line"/><text x="730" y="283" class="label">agents-as-tools</text><path d="M1130 298H1182" class="line"/>
+
+  <rect x="55" y="425" width="1330" height="257" rx="24" class="zone"/>
+  <text x="80" y="457" class="zone-title" fill="#536d94">DETERMINISTIC AUTHORITY · APPLICATION CODE</text>
+  <rect x="88" y="493" width="250" height="135" rx="18" class="card"/>
+  <text x="112" y="527" class="tag" fill="#2a7255">COORDINATION TOOLS</text><text x="112" y="557" class="node-title">Safe reversible work</text><text x="112" y="583" class="node-copy">Transport · calendar · messages</text><text x="112" y="605" class="node-copy">Synthetic counterparties</text>
+  <rect x="406" y="493" width="250" height="135" rx="18" class="card"/>
+  <text x="430" y="527" class="tag" fill="#2a7255">VERIFICATION TOOLS</text><text x="430" y="557" class="node-title">Independent checks</text><text x="430" y="583" class="node-copy">Receipt · destination · acceptance</text><text x="430" y="605" class="node-copy">No correction capability</text>
+  <rect x="724" y="483" width="315" height="155" rx="18" class="card engine"/>
+  <text x="748" y="518" class="tag" fill="#536d94">SAFETY + STATE ENGINE</text><text x="748" y="549" class="node-title">Deterministic closure gate</text><text x="748" y="575" class="node-copy">Policy · dates · permissions · transitions</text><text x="748" y="597" class="node-copy">Causal dependencies · readiness score</text><text x="748" y="619" class="node-copy">The model cannot mark itself complete</text>
+  <rect x="1107" y="493" width="243" height="135" rx="18" class="card"/>
+  <text x="1131" y="527" class="tag" fill="#536d94">DURABLE RECORD</text><text x="1131" y="557" class="node-title">Evidence + ledger</text><text x="1131" y="583" class="node-copy">Claim ≠ fact ≠ verification</text><text x="1131" y="605" class="node-copy">SQLite · resumable session</text>
+  <path d="M561 360V467H213V485" class="line"/><path d="M975 360V467H531V485" class="line"/><path d="M338 561H398" class="line"/><path d="M656 561H716" class="line"/><path d="M1039 561H1099" class="line"/>
+
+  <rect x="55" y="711" width="1330" height="143" rx="24" class="zone"/>
+  <text x="80" y="743" class="zone-title" fill="#916f1c">HUMAN AUTHORITY + VERIFIED OUTCOME</text>
+  <rect x="112" y="767" width="290" height="62" rx="16" class="card human"/><text x="136" y="793" class="tag" fill="#916f1c">STRANDS HUMAN-IN-THE-LOOP</text><text x="136" y="815" class="node-copy">Protected action pauses execution</text>
+  <rect x="510" y="767" width="250" height="62" rx="16" class="card human"/><text x="534" y="793" class="node-title">Caregiver decides</text><text x="534" y="815" class="node-copy">Approve or decline</text>
+  <rect x="1014" y="757" width="300" height="82" rx="18" class="card ready"/><text x="1038" y="789" class="tag" fill="#bfe7d3">VERIFIED OUTCOME</text><text x="1038" y="818" class="node-title" fill="#fff">100% visit readiness</text>
+  <path d="M881 638V701H257V759" class="line dash"/><text x="515" y="693" class="label">protected disclosure attempt</text><path d="M402 798H502" class="line"/><path d="M760 798H1006" class="line"/><text x="820" y="783" class="label">resume · verify · close</text>
+</svg>
