@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Care Relay — Visit command center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Care Relay home">
+      <span class="brand-mark"><i></i><i></i><i></i></span>
+      <span>Care Relay</span>
+    </a>
+    <div class="top-actions">
+      <span class="quiet-chip"><span class="pulse"></span> Agents monitoring</span>
+      <button class="icon-button" id="reset" title="Reset demo" aria-label="Reset demo">↻</button>
+      <span class="avatar">A</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="case-heading">
+      <div>
+        <a class="back" href="#">← &nbsp;All care journeys</a>
+        <div class="eyebrow">OUTPATIENT IMAGING · <span id="case-id"></span></div>
+        <h1>Daniel’s visit is <span id="headline-status">being coordinated</span></h1>
+        <p id="headline-copy">Care Relay is watching every commitment around this appointment.</p>
+      </div>
+      <div class="readiness-card">
+        <div class="ring" id="ring"><strong id="readiness">0%</strong></div>
+        <div><span>Visit readiness</span><small id="readiness-note">Verified dependencies</small></div>
+      </div>
+    </section>
+
+    <section id="decision-zone"></section>
+
+    <section class="layout">
+      <div class="main-column">
+        <article class="panel journey-panel">
+          <div class="panel-heading">
+            <div><span class="kicker">LIVE JOURNEY</span><h2>What must be true before the visit</h2></div>
+            <div class="journey-actions">
+              <button class="advance" id="live-agent" hidden><span class="spark">✦</span> Process with Strands</button>
+            </div>
+          </div>
+          <div id="external-events"></div>
+          <div id="causal-alert"></div>
+          <div id="verification-insight"></div>
+          <div id="dependency-map"></div>
+          <div class="commitment-flow" id="commitments"></div>
+        </article>
+
+        <article class="panel activity-panel">
+          <div class="panel-heading compact">
+            <div><span class="kicker">AGENT ACTIVITY</span><h2>Work happening in the background</h2></div>
+            <span class="live-label"><span class="pulse"></span> Live</span>
+          </div>
+          <div id="activity" class="activity-list"></div>
+        </article>
+
+        <article class="panel trace-panel" id="trace-panel" hidden>
+          <div class="panel-heading compact">
+            <div><span class="kicker">STRANDS TRACE</span><h2>Agent execution</h2></div>
+            <span class="trace-safe">Inputs redacted</span>
+          </div>
+          <div id="trace-summary" class="trace-summary"></div>
+          <div id="traces" class="trace-list"></div>
+        </article>
+      </div>
+
+      <aside>
+        <article class="panel appointment-panel">
+          <span class="kicker">NEXT APPOINTMENT</span>
+          <div class="date-tile"><strong id="day">10</strong><span id="month">SEP</span></div>
+          <h3>Imaging appointment</h3>
+          <p id="appointment-time"></p>
+          <div class="location">Northside Imaging<br><span>Radiology · Building C</span></div>
+        </article>
+
+        <article class="panel evidence-panel">
+          <div class="panel-heading compact"><div><span class="kicker">CASE RECORD</span><h2>Evidence trail</h2></div></div>
+          <div id="evidence"></div>
+        </article>
+
+        <article class="panel policy-panel">
+          <span class="kicker">AUTONOMY POLICY</span>
+          <h2>When agents may act</h2>
+          <div class="policy-rule auto"><span>✓</span><p><strong>Run quietly</strong>Read-only checks, approved family transport, same-provider follow-up within 7 days</p></div>
+          <div class="policy-rule ask"><span>!</span><p><strong>Ask Aisha</strong>External identifier disclosure or exceptions to standing permissions</p></div>
+          <div class="policy-rule deny"><span>×</span><p><strong>Never act</strong>Diagnosis, treatment, medication, or urgency decisions</p></div>
+        </article>
+
+        <div class="privacy-note"><span>⌾</span><p><strong>Private by design</strong><br>Only approved details leave this case.</p></div>
+      </aside>
+    </section>
+  </main>
+  <div id="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

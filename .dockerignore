@@ -1,0 +1,10 @@
+.git
+.venv
+.env
+.care-relay
+.pytest_cache
+.ruff_cache
+__pycache__
+*.pyc
+dist
+build
