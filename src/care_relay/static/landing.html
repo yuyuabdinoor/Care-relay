@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Care Relay coordinates and verifies the administrative work around family care.">
+  <title>Care Relay — Care work, independently verified</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/landing.css">
+</head>
+<body>
+  <header class="landing-nav">
+    <a class="brand" href="/" aria-label="Care Relay home">
+      <span class="brand-mark"><i></i><i></i><i></i></span>
+      <span>Care Relay</span>
+    </a>
+    <div class="nav-actions">
+      <span class="built-with"><span></span> Strands Agents · Amazon Bedrock</span>
+      <a class="nav-demo" href="/demo">Open live demo <span>↗</span></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">A QUIET AGENT FOR FAMILY CAREGIVERS</span>
+        <h1>Care work isn’t complete when someone says it was done.</h1>
+        <p class="hero-lede">It’s complete when the outcome is verified. Care Relay turns scattered provider messages, schedules, and family commitments into one coordinated path to a ready visit.</p>
+        <div class="hero-actions">
+          <a class="primary" href="/demo">Experience the live agent <span>→</span></a>
+          <a class="secondary" href="#how-it-works">See how it works</a>
+        </div>
+        <p class="demo-note"><strong>Live hackathon scenario:</strong> one appointment change, four connected commitments, and one decision only a human can make.</p>
+      </div>
+
+      <div class="hero-visual" aria-label="Care Relay verifies connected appointment commitments">
+        <div class="visual-top"><span class="live-dot"></span> Visit readiness <strong>100%</strong></div>
+        <div class="relay-line"></div>
+        <article class="relay-node appointment"><span>01</span><div><small>APPOINTMENT</small><strong>Time changed</strong></div><em>verified</em></article>
+        <article class="relay-node transport"><span>02</span><div><small>TRANSPORT</small><strong>Replacement accepted</strong></div><em>verified</em></article>
+        <article class="relay-node referral"><span>03</span><div><small>REFERRAL</small><strong>Receipt confirmed</strong></div><em>verified</em></article>
+        <article class="relay-node followup"><span>04</span><div><small>FOLLOW-UP</small><strong>Rescheduled safely</strong></div><em>verified</em></article>
+        <div class="verification-card"><span>≠</span><div><small>VERIFIER DISCOVERY</small><strong>Sent did not mean received.</strong><p>The case stayed open until the right department independently confirmed acceptance.</p></div></div>
+      </div>
+    </section>
+
+    <section class="truth-strip" aria-label="Care Relay evidence model">
+      <div><span>CLAIM</span><strong>“We sent it.”</strong></div><i>≠</i><div><span>FACT</span><strong>It went to General Records.</strong></div><i>≠</i><div><span>VERIFICATION</span><strong>Imaging accepted it.</strong></div>
+    </section>
+
+    <section class="how" id="how-it-works">
+      <div class="section-heading"><span class="eyebrow">HOW CARE RELAY WORKS</span><h2>Background coordination.<br>Human authority where it matters.</h2></div>
+      <div class="steps">
+        <article><span>01</span><h3>Detect the ripple</h3><p>A schedule change invalidates only the commitments that depend on the old time.</p></article>
+        <article><span>02</span><h3>Coordinate quietly</h3><p>Strands agents investigate claims and repair safe, reversible work with restricted tools.</p></article>
+        <article><span>03</span><h3>Ask once, then verify</h3><p>Protected actions pause for the caregiver. Approval permits the action—not the claim that it worked.</p></article>
+      </div>
+    </section>
+
+    <section class="boundary">
+      <div><span class="eyebrow">THE SAFETY BOUNDARY</span><h2>The model cannot give itself permission—or declare itself finished.</h2></div>
+      <p>Strands agents decide what work to attempt. Deterministic code validates dates, permissions, evidence, causal state, and final readiness. Care Relay coordinates administrative care; it does not diagnose or recommend treatment.</p>
+      <a href="/demo">Open Daniel’s visit <span>→</span></a>
+    </section>
+  </main>
+
+  <footer><span>Care Relay</span><p>Built for the Agents for Humans Hackathon · Everyday Agents</p><a href="https://github.com/yuyuabdinoor/Care-relay">View source ↗</a></footer>
+</body>
+</html>

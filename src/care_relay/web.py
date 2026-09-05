@@ -575,7 +575,22 @@ app = FastAPI(title="Care Relay", docs_url=None, redoc_url=None)
 
 @app.get("/")
 def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "landing.html")
+
+
+@app.get("/demo")
+def demo() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/landing.css")
+def landing_styles() -> FileResponse:
+    return FileResponse(STATIC_DIR / "landing.css")
+
+
+@app.get("/favicon.svg")
+def favicon() -> FileResponse:
+    return FileResponse(STATIC_DIR / "favicon.svg")
 
 
 @app.get("/styles.css")

@@ -69,7 +69,8 @@ Launch the interactive command center:
 care-relay-dashboard
 ```
 
-Then open [http://127.0.0.1:8000](http://127.0.0.1:8000). Choose
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) for the product introduction,
+or go directly to [http://127.0.0.1:8000/demo](http://127.0.0.1:8000/demo). Choose
 **Process with Strands** to send the synthetic schedule-change event through the
 live Bedrock-backed coordinator. It delegates verification, calls deterministic
 safety tools, pauses before the protected referral correction, and resumes only

@@ -26,6 +26,8 @@ def test_runtime_errors_are_safe_and_actionable():
 
 def test_dashboard_exposes_live_agent_path_only():
     client = TestClient(app)
+    assert "Care work isn’t complete" in client.get("/").text
+    assert "What must be true before the visit" in client.get("/demo").text
     state = client.post("/api/demo/reset").json()
     assert state["case"]["readiness"] == 50
     assert len(state["dependencies"]) == 2
