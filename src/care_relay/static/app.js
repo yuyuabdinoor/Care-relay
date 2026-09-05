@@ -33,7 +33,7 @@ function render(data) {
   const liveAgent = document.querySelector("#live-agent");
   liveAgent.hidden = !data.can_start_agents && !data.can_process_event;
   liveAgent.disabled = false;
-  liveAgent.innerHTML = data.can_process_event ? "<span class='spark'>✦</span> Process with Strands" : "<span class='spark'>✦</span> Continue Strands run";
+  liveAgent.innerHTML = data.can_process_event ? "<span class='spark'>✦</span> Simulate incoming provider update" : "<span class='spark'>✦</span> Continue Strands run";
 
   const hasRipple = data.commitments.filter(x => ["blocked","conflicted"].includes(x.state)).length > 1;
   const runtime = data.agent_runtime;

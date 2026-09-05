@@ -71,12 +71,12 @@ care-relay-dashboard
 
 Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) for the product introduction,
 or go directly to [http://127.0.0.1:8000/demo](http://127.0.0.1:8000/demo). Choose
-**Process with Strands** to send the synthetic schedule-change event through the
+**Simulate incoming provider update** to send the synthetic provider email through the
 live Bedrock-backed coordinator. It delegates verification, calls deterministic
 safety tools, pauses before the protected referral correction, and resumes only
 after the caregiver decides.
 
-At the initial state, **Process with Strands** sends the synthetic provider
+At the initial state, **Simulate incoming provider update** sends the synthetic provider
 email to the coordinator as delimited, untrusted content. The model must extract
 the explicitly stated date and call `record_appointment_change`; deterministic
 code validates ISO-8601 format and timezone before propagating the change through
