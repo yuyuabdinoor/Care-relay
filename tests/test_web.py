@@ -4,7 +4,24 @@ from threading import Event
 from fastapi.testclient import TestClient
 
 from care_relay.repository import CaseRepository
-from care_relay.web import AgentDecision, Decision, DemoSession, ExternalMessage, app
+from care_relay.web import (
+    AgentDecision,
+    Decision,
+    DemoSession,
+    ExternalMessage,
+    _public_runtime_error,
+    app,
+)
+
+
+def test_runtime_errors_are_safe_and_actionable():
+    expired = RuntimeError("LoginRefreshRequired: Your session has expired")
+    unknown = RuntimeError("provider request abc-123 failed with internal payload")
+
+    assert _public_runtime_error(expired) == (
+        "AWS session expired. Run 'aws login', then reset and retry the demo."
+    )
+    assert "abc-123" not in _public_runtime_error(unknown)
 
 
 def test_dashboard_exposes_live_agent_path_only():

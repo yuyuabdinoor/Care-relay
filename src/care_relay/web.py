@@ -24,6 +24,19 @@ from care_relay.runtime import AgentRun
 from care_relay.tools import CareRelayTools
 
 STATIC_DIR = Path(__file__).with_name("static")
+LOGGER = logging.getLogger(__name__)
+
+
+def _public_runtime_error(exc: Exception) -> str:
+    """Return a useful demo-safe message without exposing provider internals."""
+    detail = f"{type(exc).__name__}: {exc}".lower()
+    if "loginrefreshrequired" in detail or "session has expired" in detail:
+        return "AWS session expired. Run 'aws login', then reset and retry the demo."
+    if "accessdenied" in detail or "not authorized" in detail:
+        return "Bedrock access was denied. Confirm the AWS profile and model access, then retry."
+    if "throttl" in detail:
+        return "Bedrock is temporarily throttling requests. Wait briefly, then retry."
+    return "The live agent run stopped safely. Check the server log, then reset and retry."
 
 
 class _EmptyNoArgToolInputFilter(logging.Filter):
@@ -421,10 +434,11 @@ class DemoSession:
                 self.background_state = "idle"
                 self.trace_records = self.agent_run.trace_collector.snapshot()
                 self.persist()
-        except Exception as exc:  # noqa: BLE001 - worker must surface all runtime failures
+        except Exception as exc:
+            LOGGER.exception("Live agent run failed")
             with self.lock:
                 self.background_state = "error"
-                self.background_error = f"{type(exc).__name__}: {exc}"
+                self.background_error = _public_runtime_error(exc)
                 if self.agent_run is not None:
                     self.trace_records = self.agent_run.trace_collector.snapshot()
                 self.persist()
@@ -469,10 +483,11 @@ class DemoSession:
                 self.background_state = "idle"
                 self.trace_records = self.agent_run.trace_collector.snapshot()
                 self.persist()
-        except Exception as exc:  # noqa: BLE001 - worker must surface all runtime failures
+        except Exception as exc:
+            LOGGER.exception("Live agent resume failed")
             with self.lock:
                 self.background_state = "error"
-                self.background_error = f"{type(exc).__name__}: {exc}"
+                self.background_error = _public_runtime_error(exc)
                 if self.agent_run is not None:
                     self.trace_records = self.agent_run.trace_collector.snapshot()
                 self.persist()
