@@ -164,12 +164,20 @@ SUBJECT: {subject}
                     for item in self.pending_interrupts
                 ],
             }
+        waiting = self.last_result.stop_reason == "interrupt"
+        if waiting:
+            message = "Strands paused before a protected action."
+        elif self.services.case.status.value == "ready":
+            message = "The deterministic readiness gate confirms every commitment is verified."
+        else:
+            message = (
+                "Agent execution ended, but the deterministic readiness gate keeps "
+                f"the case {self.services.case.status.value}."
+            )
         return {
-            "state": "waiting_for_human"
-            if self.last_result.stop_reason == "interrupt"
-            else "completed",
+            "state": "waiting_for_human" if waiting else "completed",
             "stop_reason": self.last_result.stop_reason,
-            "message": str(self.last_result),
+            "message": message,
             "interrupts": [
                 {
                     "interrupt_id": item.interrupt_id,

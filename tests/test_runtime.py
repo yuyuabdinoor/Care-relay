@@ -102,7 +102,17 @@ def build_fake_run():
     run.services = type(
         "Services",
         (),
-        {"case": type("Case", (), {"commitments": {}, "pending_approvals": []})()},
+        {
+            "case": type(
+                "Case",
+                (),
+                {
+                    "commitments": {},
+                    "pending_approvals": [],
+                    "status": type("Status", (), {"value": "active"})(),
+                },
+            )()
+        },
     )()
     run.model = None
     run.last_result = None
@@ -122,6 +132,19 @@ def test_agent_run_preserves_interrupt_and_resumes_same_coordinator():
     assert run.bundle.coordinator.inputs[1] == [
         {"interruptResponse": {"interruptId": "INT-1", "response": "yes"}}
     ]
+
+
+def test_runtime_status_uses_deterministic_case_state_not_model_narration():
+    run = build_fake_run()
+    run.services.case.status = type("Status", (), {"value": "ready"})()
+    run.start("repair visit")
+    run.resume(True)
+
+    status = run.status()
+    assert status["state"] == "completed"
+    assert status["message"] == (
+        "The deterministic readiness gate confirms every commitment is verified."
+    )
 
 
 def test_agent_run_rejects_invalid_lifecycle_calls():

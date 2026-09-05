@@ -65,8 +65,8 @@ function render(data) {
   const successfulTools = toolFinishes.filter(item => item.details.status === "success");
   const agentCount = new Set(traces.map(item => item.agent)).size;
   const verifierActions = successfulTools.filter(item => item.agent === "verification_agent").length;
-  const interruptions = traces.filter(item => item.event === "run_stopped" && item.details.stop_reason === "interrupt").length;
-  document.querySelector("#trace-summary").innerHTML = traces.length ? `<div><strong>${agentCount}</strong><span>Strands agents</span></div><div><strong>${successfulTools.length}</strong><span>tools completed</span></div><div><strong>${verifierActions}</strong><span>independent checks</span></div><div><strong>${interruptions}</strong><span>human decision</span></div>` : "";
+  const humanDecisions = data.ledger.filter(item => item.event_type === "approval_decided").length;
+  document.querySelector("#trace-summary").innerHTML = traces.length ? `<div><strong>${agentCount}</strong><span>Strands agents</span></div><div><strong>${successfulTools.length}</strong><span>tools completed</span></div><div><strong>${verifierActions}</strong><span>independent checks</span></div><div><strong>${humanDecisions}</strong><span>human decisions</span></div>` : "";
   const significantTraces = traces.filter(item => item.event === "tool_finished" || (item.event === "run_stopped" && ["interrupt", "end_turn"].includes(item.details.stop_reason))).slice(-10).reverse();
   document.querySelector("#traces").innerHTML = significantTraces.map(item => `<div class="trace-row ${item.agent === "verification_agent" ? "verifier-trace" : ""}"><span class="trace-dot"></span><div><strong>${item.agent === "verification_agent" ? "Verifier" : "Coordinator"} · ${item.details.tool ? niceState(item.details.tool) : niceState(item.details.stop_reason)}</strong><p>${item.summary}</p><span class="trace-meta">#${item.sequence}${item.details.duration_ms ? ` · ${item.details.duration_ms} ms` : ""}</span></div></div>`).join("");
   const evidence = data.commitments.flatMap(item => item.evidence.map(ev => ({...ev, label: labels[item.kind].name}))).reverse().slice(0,6);
