@@ -7,6 +7,7 @@ const labels = {
 let state;
 let decisionInFlight = false;
 let pollTimer;
+let previousCommitmentStates = {};
 
 async function api(path, options = {}) {
   const response = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -15,6 +16,11 @@ async function api(path, options = {}) {
 }
 
 function niceState(value) { return value.replaceAll("_", " "); }
+function stateLabel(value) {
+  const marks = { verified: "✓", claimed: "“ ”", blocked: "!", conflicted: "!", needs_approval: "◇", pending: "○" };
+  return `${marks[value] || "○"} ${niceState(value)}`;
+}
+function agentClass(agent) { return agent === "Verifier" ? "verifier" : agent === "Aisha" ? "human" : "coordinator"; }
 function initials(agent) { return agent === "Verifier" ? "V" : agent === "Aisha" ? "A" : "C"; }
 function fmtDate(value) { return new Date(value).toLocaleString("en-US", { weekday:"long", month:"long", day:"numeric", hour:"numeric", minute:"2-digit" }); }
 
@@ -23,8 +29,14 @@ function render(data) {
   document.querySelector("#case-id").textContent = data.case.id;
   document.querySelector("#readiness").textContent = `${data.case.readiness}%`;
   document.querySelector("#ring").style.setProperty("--progress", `${data.case.readiness * 3.6}deg`);
-  document.querySelector("#headline-status").textContent = data.complete ? "ready" : data.approvals.length ? "waiting for you" : "being coordinated";
-  document.querySelector("#headline-copy").textContent = data.complete ? "Every required commitment has independent evidence." : data.approvals.length ? "The agents have paused at a consequential decision." : "Care Relay is watching every commitment around this appointment.";
+  const verifiedCount = data.commitments.filter(item => item.state === "verified").length;
+  const runtime = data.agent_runtime;
+  document.querySelector("#readiness-note").textContent = `${verifiedCount} of ${data.commitments.length} independently verified`;
+  document.querySelector("#headline-status").textContent = data.complete ? "ready" : runtime.state === "error" ? "paused" : data.approvals.length ? "waiting for you" : runtime.state === "running" ? "being coordinated" : "under watch";
+  document.querySelector("#headline-copy").textContent = data.complete ? "Every required commitment has independent evidence." : runtime.state === "error" ? "The case is preserved, but live agent work needs the AWS connection restored." : data.approvals.length ? "The agents have paused at a consequential decision." : "Care Relay is watching every commitment around this appointment.";
+  const runtimeChip = document.querySelector("#runtime-chip");
+  runtimeChip.className = `quiet-chip runtime-${runtime.state}`;
+  runtimeChip.innerHTML = `<span class="pulse"></span>${runtime.state === "running" ? "Agents working" : runtime.state === "waiting_for_human" ? "Waiting for Aisha" : runtime.state === "error" ? "Connection needed" : data.complete ? "Visit ready" : "Live case"}`;
   const date = new Date(data.case.appointment_at);
   document.querySelector("#day").textContent = date.getDate();
   document.querySelector("#month").textContent = date.toLocaleString("en-US", {month:"short"}).toUpperCase();
@@ -33,10 +45,9 @@ function render(data) {
   const liveAgent = document.querySelector("#live-agent");
   liveAgent.hidden = !data.can_start_agents && !data.can_process_event;
   liveAgent.disabled = false;
-  liveAgent.innerHTML = data.can_process_event ? "<span class='spark'>✦</span> Simulate incoming provider update" : "<span class='spark'>✦</span> Continue Strands run";
+  liveAgent.innerHTML = data.can_process_event ? "<span class='spark'>✦</span> Receive provider update" : data.can_start_agents ? "<span class='spark'>✦</span> Start live Strands run" : "<span class='spark'>✦</span> Continue Strands run";
 
   const hasRipple = data.commitments.filter(x => ["blocked","conflicted"].includes(x.state)).length > 1;
-  const runtime = data.agent_runtime;
   document.querySelector("#reset").disabled = runtime.state === "running";
   const newestEvent = data.external_events?.[0];
   document.querySelector("#external-events").innerHTML = newestEvent ? `<div class="external-event"><span class="event-icon">↘</span><div><strong>${newestEvent.subject} <span class="event-source">· ${newestEvent.source}</span></strong><p>${newestEvent.message}</p></div><small>${newestEvent.channel}</small></div>` : "";
@@ -52,12 +63,17 @@ function render(data) {
   const byId = Object.fromEntries(data.commitments.map(item => [item.id, item]));
   const referral = byId.referral;
   const misdirected = referral?.evidence?.find(item => item.kind === "fact" && item.summary.includes("required"));
-  document.querySelector("#verification-insight").innerHTML = misdirected ? `<div class="verification-insight"><div class="insight-mark">≠</div><div><span>VERIFIER DISCOVERY</span><strong>Sent did not mean received</strong><p>${misdirected.summary}. Care Relay kept the visit open until Imaging independently accepted the correction.</p></div><div class="insight-state">${niceState(referral.state)}</div></div>` : "";
+  const correctionSent = referral?.evidence?.some(item => item.summary.includes("Corrected referral was transmitted"));
+  const correctionVerified = referral?.evidence?.some(item => item.summary.includes("confirmed receipt and acceptance"));
+  const approval = data.ledger.find(item => item.event_type === "approval_decided");
+  const approvalStep = approval ? (approval.details.approved ? `<li class="done"><b>◇</b><span>Aisha approved</span></li>` : `<li class="stopped"><b>×</b><span>Aisha declined</span></li>`) : `<li class="current"><b>◇</b><span>Approval required</span></li>`;
+  document.querySelector("#verification-insight").innerHTML = misdirected ? `<div class="verification-insight"><div class="insight-mark">≠</div><div class="insight-copy"><em class="provenance-label layer-agent">Chosen by agent</em><span>Verifier discovery</span><strong>Sent did not mean received</strong><p>${misdirected.summary}.</p><ol class="evidence-chain"><li class="done"><b>“ ”</b><span>Clinic claimed sent</span></li><li class="fact"><b>!</b><span>Imaging reported missing</span></li>${approvalStep}${correctionSent ? `<li class="done"><b>→</b><span>Correction transmitted</span></li>` : ""}${correctionVerified ? `<li class="done"><b>✓</b><span>Imaging confirmed receipt</span></li>` : ""}</ol><p class="counterfactual">A system that trusted the original claim would have marked this handoff complete.</p></div><div><em class="provenance-label layer-evidence">Confirmed by evidence</em><div class="insight-state">${stateLabel(referral.state)}</div></div></div>` : "";
   const changedSources = new Set(dependencies.filter(edge => byId[edge.target_id]?.state === "blocked").map(edge => edge.source_id));
-  document.querySelector("#dependency-map").innerHTML = data.stage > 0 && dependencies.length ? `<div class="dependency-map"><div class="dependency-map-label">causal graph</div><div class="dependency-source"><strong>${labels[byId[dependencies[0].source_id].kind].name}</strong><span>Time changed</span></div><div class="dependency-branches">${dependencies.map(edge => `<div class="dependency-edge"><span class="dependency-arrow">→</span><div class="dependency-target ${changedSources.has(edge.source_id) && byId[edge.target_id].state === "blocked" ? "affected" : ""}"><strong>${labels[byId[edge.target_id].kind].name}</strong><span>${edge.relation}</span><em class="edge-state ${byId[edge.target_id].state}">${niceState(byId[edge.target_id].state)}</em></div></div>`).join("")}</div></div>` : "";
-  document.querySelector("#commitments").innerHTML = data.commitments.map(item => `<div class="commitment ${item.state}"><div class="node-icon">${labels[item.kind].icon}</div><h3>${labels[item.kind].name}</h3><p>${item.blocker || `${item.label}<br>Owner: ${item.owner || "Unassigned"}`}</p><span class="state">${niceState(item.state)}</span></div>`).join("");
+  document.querySelector("#dependency-map").innerHTML = data.stage > 0 && dependencies.length ? `<div class="dependency-map"><div class="dependency-map-label">causal graph</div><em class="provenance-label layer-code graph-provenance">Enforced by code</em><div class="dependency-source"><strong>${labels[byId[dependencies[0].source_id].kind].name}</strong><span>Time changed</span></div><div class="dependency-branches">${dependencies.map(edge => `<div class="dependency-edge"><span class="dependency-arrow">→</span><div class="dependency-target ${changedSources.has(edge.source_id) && byId[edge.target_id].state === "blocked" ? "affected" : ""}"><strong>${labels[byId[edge.target_id].kind].name}</strong><span>${edge.relation}</span><em class="edge-state ${byId[edge.target_id].state}">${niceState(byId[edge.target_id].state)}</em></div></div>`).join("")}</div><p class="graph-note">Referral was discovered independently during verification—not caused by this appointment ripple.</p></div>` : "";
+  document.querySelector("#commitments").innerHTML = data.commitments.map(item => `<div class="commitment ${item.state} ${previousCommitmentStates[item.id] && previousCommitmentStates[item.id] !== item.state ? "state-changed" : ""}"><div class="node-icon">${labels[item.kind].icon}</div><h3>${labels[item.kind].name}</h3><p>${item.blocker || `${item.label}<br>Owner: ${item.owner || "Unassigned"}`}</p><span class="state">${stateLabel(item.state)}</span></div>`).join("");
+  previousCommitmentStates = Object.fromEntries(data.commitments.map(item => [item.id, item.state]));
 
-  document.querySelector("#activity").innerHTML = data.activity.map(item => `<div class="activity-row"><span class="agent-dot">${initials(item.agent)}</span><div><strong>${item.agent}</strong><p>${item.message}</p></div><em>${item.kind}</em></div>`).join("");
+  document.querySelector("#activity").innerHTML = data.activity.map(item => `<div class="activity-row ${agentClass(item.agent)} activity-${item.layer || "agent"}"><span class="agent-dot">${initials(item.agent)}</span><div><strong>${item.agent}</strong><span class="provenance-label layer-${item.layer || "agent"}">${item.layer === "code" ? "Enforced by code" : item.layer === "evidence" ? "Confirmed by evidence" : "Chosen by agent"}</span><p>${item.message}</p></div><em>${item.duration || item.kind}</em></div>`).join("");
   const tracePanel = document.querySelector("#trace-panel");
   tracePanel.hidden = !data.traces?.length;
   const traces = data.traces || [];
@@ -70,9 +86,11 @@ function render(data) {
   const significantTraces = traces.filter(item => item.event === "tool_finished" || (item.event === "run_stopped" && ["interrupt", "end_turn"].includes(item.details.stop_reason))).slice(-10).reverse();
   document.querySelector("#traces").innerHTML = significantTraces.map(item => `<div class="trace-row ${item.agent === "verification_agent" ? "verifier-trace" : ""}"><span class="trace-dot"></span><div><strong>${item.agent === "verification_agent" ? "Verifier" : "Coordinator"} · ${item.details.tool ? niceState(item.details.tool) : niceState(item.details.stop_reason)}</strong><p>${item.summary}</p><span class="trace-meta">#${item.sequence}${item.details.duration_ms ? ` · ${item.details.duration_ms} ms` : ""}</span></div></div>`).join("");
   const evidence = data.commitments.flatMap(item => item.evidence.map(ev => ({...ev, label: labels[item.kind].name}))).reverse().slice(0,6);
-  document.querySelector("#evidence").innerHTML = evidence.map(ev => `<div class="evidence-item"><strong>${ev.label}</strong><p>${ev.summary}</p><span>${ev.kind} · ${ev.source}</span></div>`).join("");
+  document.querySelector("#evidence").innerHTML = evidence.length ? `<div class="evidence-item evidence-latest"><strong>${evidence[0].label}</strong><p>${evidence[0].summary}</p><span class="evidence-kind kind-${evidence[0].kind}">${evidence[0].kind} · ${evidence[0].source}</span></div>${evidence.length > 1 ? `<details class="evidence-more"><summary>View ${evidence.length - 1} earlier evidence records</summary>${evidence.slice(1).map(ev => `<div class="evidence-item"><strong>${ev.label}</strong><p>${ev.summary}</p><span class="evidence-kind kind-${ev.kind}">${ev.kind} · ${ev.source}</span></div>`).join("")}</details>` : ""}` : "";
 
-  document.querySelector("#decision-zone").innerHTML = data.approvals.map(item => `<div class="decision-card"><div class="decision-icon">!</div><div><h3>Your approval is needed</h3><p>Send a correction to ${item.recipient}. Shares only: ${item.disclosure.join(", ")}.</p></div><div class="decision-actions">${data.can_restore_agents ? `<button class="approve" onclick="restoreAgents()">Restore paused agent</button>` : `<button onclick="decide('${item.approval_id}', false)">Decline</button><button class="approve" onclick="decide('${item.approval_id}', true)">Approve & send</button>`}</div></div>`).join("");
+  const errorNotice = runtime.state === "error" ? `<div class="system-alert"><div class="system-alert-mark">!</div><div><strong>Live agent connection paused</strong><p>${runtime.message}</p></div><span>Case state preserved</span></div>` : "";
+  const approvalNotices = data.approvals.map(item => `<div class="decision-card"><div class="decision-icon">!</div><div><h3>Your approval is needed</h3><p>Send a correction to ${item.recipient}. Shares only: ${item.disclosure.join(", ")}.</p></div><div class="decision-actions">${data.can_restore_agents ? `<button class="approve" onclick="restoreAgents()">Restore paused agent</button>` : `<button onclick="decide('${item.approval_id}', false)">Decline</button><button class="approve" onclick="decide('${item.approval_id}', true)">Approve & send</button>`}</div></div>`).join("");
+  document.querySelector("#decision-zone").innerHTML = errorNotice + approvalNotices;
 }
 
 function monitorRun() {

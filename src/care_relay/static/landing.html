@@ -4,69 +4,123 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Care Relay coordinates and verifies the administrative work around family care.">
-  <title>Care Relay — Care work, independently verified</title>
+  <title>Care Relay — Followed through, not just followed up</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;family=Young+Serif&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/landing.css">
 </head>
-<body>
-  <header class="landing-nav">
-    <a class="brand" href="/" aria-label="Care Relay home">
-      <span class="brand-mark"><i></i><i></i><i></i></span>
-      <span>Care Relay</span>
-    </a>
-    <div class="nav-actions">
-      <span class="built-with"><span></span> Strands Agents · Amazon Bedrock</span>
-      <a class="nav-demo" href="/demo">Open live demo <span>↗</span></a>
-    </div>
+<body data-scene="0">
+  <header class="site-nav">
+    <a class="brand" href="/" aria-label="Care Relay home"><span class="brand-signal" aria-hidden="true"><i></i><i></i><i></i></span>Care Relay</a>
+    <span class="nav-note">Family care coordination</span>
+    <a class="demo-link" href="/demo">Open live demo <span aria-hidden="true">↗</span></a>
   </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-copy">
-        <span class="eyebrow">A QUIET AGENT FOR FAMILY CAREGIVERS</span>
-        <h1>Care work isn’t complete when someone says it was done.</h1>
-        <p class="hero-lede">It’s complete when the outcome is verified. Care Relay turns scattered provider messages, schedules, and family commitments into one coordinated path to a ready visit.</p>
-        <div class="hero-actions">
-          <a class="primary" href="/demo">Experience the live agent <span>→</span></a>
-          <a class="secondary" href="#how-it-works">See how it works</a>
-        </div>
-        <p class="demo-note"><strong>Live hackathon scenario:</strong> a synthetic provider email reports one appointment change, affecting four connected commitments and one decision only a human can make.</p>
+  <main class="story" id="story">
+    <div class="stage" aria-label="An appointment change ripples through four connected care commitments">
+      <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+      <p class="stage-index"><span id="scene-number">01</span> / 06</p>
+      <nav class="scene-nav" aria-label="Story progress">
+        <button data-jump="0" aria-label="Opening scene"><span>Whole visit</span></button>
+        <button data-jump="1" aria-label="Appointment changed"><span>Change</span></button>
+        <button data-jump="2" aria-label="Coordination"><span>Coordinate</span></button>
+        <button data-jump="3" aria-label="Contradiction"><span>Verify</span></button>
+        <button data-jump="4" aria-label="Human approval"><span>Decide</span></button>
+        <button data-jump="5" aria-label="Verified outcome"><span>Ready</span></button>
+      </nav>
+
+      <svg class="care-lines" viewBox="0 0 1000 700" role="presentation" aria-hidden="true">
+        <path class="line line-transport" pathLength="1" d="M500 350 C390 310 310 250 205 195"/>
+        <path class="line line-referral" pathLength="1" d="M500 350 C620 300 710 245 810 185"/>
+        <path class="line line-followup" pathLength="1" d="M500 350 C620 420 710 495 810 545"/>
+        <path class="line line-caregiver" pathLength="1" d="M500 350 C390 420 310 505 205 555"/>
+        <circle class="pulse pulse-transport" r="6"><animateMotion dur="2.8s" repeatCount="indefinite" path="M500 350 C390 310 310 250 205 195"/></circle>
+        <circle class="pulse pulse-referral" r="6"><animateMotion dur="3.2s" repeatCount="indefinite" path="M500 350 C620 300 710 245 810 185"/></circle>
+        <circle class="pulse pulse-followup" r="6"><animateMotion dur="3.6s" repeatCount="indefinite" path="M500 350 C620 420 710 495 810 545"/></circle>
+      </svg>
+
+      <section class="care-map">
+        <article class="care-node node-appointment" data-node="appointment">
+          <div class="node-top"><span>APPOINTMENT</span><i class="node-state state-verified">✓ VERIFIED</i></div>
+          <time><b>10</b><span>SEP<br>10:00</span></time>
+          <h2>Imaging visit</h2><p>Northside Imaging · Building C</p>
+          <div class="change-ticket"><small>PROVIDER UPDATE</small><strong>Moved to Sep 11 · 2:30 PM</strong></div>
+        </article>
+        <article class="care-node node-transport" data-node="transport"><div class="node-top"><span>TRANSPORT</span><i class="node-state state-verified">✓ VERIFIED</i></div><strong>Marcus driving</strong><p>Pickup · 9:15 AM</p><em>Old ride no longer fits</em></article>
+        <article class="care-node node-referral" data-node="referral"><div class="node-top"><span>REFERRAL</span><i class="node-state state-claimed">“ ” CLAIMED</i></div><strong>“Sent to Imaging”</strong><p>Riverside Family Clinic</p><em>Destination disputed</em></article>
+        <article class="care-node node-followup" data-node="followup"><div class="node-top"><span>FOLLOW-UP</span><i class="node-state state-verified">✓ VERIFIED</i></div><strong>Sep 13 · 11:00 AM</strong><p>Within required 7-day window</p><em>Window needs recalculation</em></article>
+        <article class="care-node node-caregiver" data-node="caregiver"><div class="node-top"><span>CAREGIVER</span><i class="node-state state-available">○ AVAILABLE</i></div><strong>Aisha</strong><p>Human authority for protected actions</p></article>
+      </section>
+
+      <div class="agent agent-coordinator"><span class="agent-orbit"></span><b>Coordinator</b><small>Strands agent</small></div>
+      <div class="agent agent-verifier"><span class="agent-orbit"></span><b>Verifier</b><small>Independent tools</small></div>
+
+      <div class="claim-split" aria-hidden="true">
+        <div><small>RIVERSIDE CLAIM</small><strong>SENT</strong><span>Transmission TX-8841</span></div>
+        <i>≠</i>
+        <div><small>NORTHSIDE CHECK</small><strong>NOT RECEIVED</strong><span>Imaging inbox</span></div>
+        <p>Actual destination: <b>General Records</b></p>
       </div>
 
-      <div class="hero-visual" aria-label="Care Relay verifies connected appointment commitments">
-        <div class="visual-top"><span class="live-dot"></span> Visit readiness <strong>100%</strong></div>
-        <div class="relay-line"></div>
-        <article class="relay-node appointment"><span>01</span><div><small>APPOINTMENT</small><strong>Time changed</strong></div><em>verified</em></article>
-        <article class="relay-node transport"><span>02</span><div><small>TRANSPORT</small><strong>Replacement accepted</strong></div><em>verified</em></article>
-        <article class="relay-node referral"><span>03</span><div><small>REFERRAL</small><strong>Receipt confirmed</strong></div><em>verified</em></article>
-        <article class="relay-node followup"><span>04</span><div><small>FOLLOW-UP</small><strong>Rescheduled safely</strong></div><em>verified</em></article>
-        <div class="verification-card"><span>≠</span><div><small>VERIFIER DISCOVERY</small><strong>Sent did not mean received.</strong><p>The case stayed open until the right department independently confirmed acceptance.</p></div></div>
+      <div class="approval" role="presentation">
+        <header><span>Human decision required</span><i>Execution paused</i></header>
+        <h2>Correct the referral?</h2>
+        <p>Care Relay needs permission to send Daniel’s name, date of birth, and referral ID to Northside Imaging.</p>
+        <dl><div><dt>To</dt><dd>Northside Imaging</dd></div><div><dt>Why</dt><dd>Correct misdirected referral</dd></div></dl>
+        <div class="approval-actions"><span>Decline</span><strong>Approve correction</strong></div>
       </div>
-    </section>
 
-    <section class="truth-strip" aria-label="Care Relay evidence model">
-      <div><span>CLAIM</span><strong>“We sent it.”</strong></div><i>≠</i><div><span>FACT</span><strong>It went to General Records.</strong></div><i>≠</i><div><span>VERIFICATION</span><strong>Imaging accepted it.</strong></div>
-    </section>
+      <div class="verified-seal"><span>4 / 4</span><strong>VISIT READY</strong><small>Every commitment independently verified</small></div>
+      <p class="technology">Care Relay reasons with <b>Strands Agents</b> running Claude through Amazon Bedrock.</p>
+    </div>
 
-    <section class="how" id="how-it-works">
-      <div class="section-heading"><span class="eyebrow">HOW CARE RELAY WORKS</span><h2>Background coordination.<br>Human authority where it matters.</h2></div>
-      <div class="steps">
-        <article><span>01</span><h3>Detect the ripple</h3><p>A schedule change invalidates only the commitments that depend on the old time.</p></article>
-        <article><span>02</span><h3>Coordinate quietly</h3><p>Strands agents investigate claims and repair safe, reversible work with restricted tools.</p></article>
-        <article><span>03</span><h3>Ask once, then verify</h3><p>Protected actions pause for the caregiver. Approval permits the action—not the claim that it worked.</p></article>
-      </div>
-    </section>
-
-    <section class="boundary">
-      <div><span class="eyebrow">THE SAFETY BOUNDARY</span><h2>The model cannot give itself permission—or declare itself finished.</h2></div>
-      <p>Strands agents decide what work to attempt. Deterministic code validates dates, permissions, evidence, causal state, and final readiness. Care Relay coordinates administrative care; it does not diagnose or recommend treatment.</p>
-      <a href="/demo">Open Daniel’s visit <span>→</span></a>
-    </section>
+    <div class="chapters">
+      <section class="chapter chapter-0" id="chapter-opening" data-scene="0"><div class="chapter-copy"><span>The visit</span><h1>One appointment.<br><em>Everything it depends on.</em></h1><p>Care Relay watches the commitments around someone you love, then works quietly until the whole visit is ready.</p><a href="#chapter-change">Follow the care journey <i>↓</i></a></div></section>
+      <section class="chapter chapter-1" id="chapter-change" data-scene="1"><div class="chapter-copy"><span>A change arrives</span><h2>One change travels further than it looks.</h2><p>When the appointment moves, the existing ride and follow-up become invalid. Care Relay sees the dependency—not four unrelated tasks.</p></div></section>
+      <section class="chapter chapter-2" data-scene="2"><div class="chapter-copy"><span>Agents coordinate</span><h2>The safe repairs begin without another chore for Aisha.</h2><p>The Coordinator checks approved family transport and valid follow-up windows using restricted tools.</p></div></section>
+      <section class="chapter chapter-3" id="chapter-verification" data-scene="3"><div class="chapter-copy"><span>Evidence conflicts</span><h2>“Sent” is a claim.<br>“Received” is a fact.</h2><p>The Verifier uses a separate tool boundary and discovers that the referral reached General Records—not Imaging.</p></div></section>
+      <section class="chapter chapter-4" id="chapter-approval" data-scene="4"><div class="chapter-copy"><span>A human decides</span><h2>The model cannot give itself permission.</h2><p>Protected disclosure freezes execution. Aisha sees exactly what will leave the case, why, and who will receive it.</p></div></section>
+      <section class="chapter chapter-5" id="chapter-outcome" data-scene="5"><div class="chapter-copy"><span>Independently verified</span><h2>Not claimed complete.<br><em>Verified complete.</em></h2><p>Care work isn’t complete until the receiving department confirms the correction. Only then does Care Relay mark the visit ready.</p><a class="final-cta" href="/demo">Run the live Strands demo <i>↗</i></a></div></section>
+    </div>
   </main>
 
-  <footer><span>Care Relay</span><p>Built for the Agents for Humans Hackathon · Everyday Agents</p><a href="https://github.com/yuyuabdinoor/Care-relay">View source ↗</a></footer>
+  <section class="boundary">
+    <p>Care Relay coordinates administrative care. It does not diagnose, recommend treatment, or make urgency decisions.</p>
+    <div><span>Agents choose what to attempt.</span><span>Code enforces evidence and permissions.</span><span>Humans control consequential action.</span></div>
+  </section>
+  <footer><strong>Care Relay</strong><span>Agents for Humans · Everyday Agents</span><a href="https://github.com/yuyuabdinoor/Care-relay">Public source</a></footer>
+  <script>
+    const chapters = [...document.querySelectorAll(".chapter")];
+    const navButtons = [...document.querySelectorAll(".scene-nav button")];
+    const sceneNumber = document.querySelector("#scene-number");
+
+    function setScene(index) {
+      const next = Math.max(0, Math.min(chapters.length - 1, index));
+      document.body.dataset.scene = String(next);
+      sceneNumber.textContent = String(next + 1).padStart(2, "0");
+      chapters.forEach((chapter, i) => chapter.classList.toggle("active", i === next));
+      navButtons.forEach((button, i) => {
+        button.classList.toggle("active", i === next);
+        button.setAttribute("aria-current", i === next ? "step" : "false");
+      });
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setScene(Number(visible.target.dataset.scene));
+    }, { threshold: [0.35, 0.55, 0.75], rootMargin: "-10% 0px -10% 0px" });
+
+    chapters.forEach(chapter => observer.observe(chapter));
+    navButtons.forEach(button => button.addEventListener("click", () => {
+      chapters[Number(button.dataset.jump)].scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+
+    const linkedChapter = window.location.hash ? document.querySelector(window.location.hash) : null;
+    setScene(linkedChapter?.classList.contains("chapter") ? Number(linkedChapter.dataset.scene) : 0);
+  </script>
 </body>
 </html>

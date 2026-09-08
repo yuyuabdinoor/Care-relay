@@ -7,7 +7,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;family=Young+Serif&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
       <span>Care Relay</span>
     </a>
     <div class="top-actions">
-      <span class="quiet-chip"><span class="pulse"></span> Agents monitoring</span>
+      <span class="quiet-chip" id="runtime-chip"><span class="pulse"></span> Live case</span>
       <button class="icon-button" id="reset" title="Reset demo" aria-label="Reset demo">↻</button>
       <span class="avatar">A</span>
     </div>
@@ -27,13 +27,20 @@
     <section class="case-heading">
       <div>
         <a class="back" href="/">← &nbsp;About Care Relay</a>
-        <div class="eyebrow">OUTPATIENT IMAGING · <span id="case-id"></span></div>
+        <div class="eyebrow">Outpatient imaging / <span id="case-id"></span></div>
         <h1>Daniel’s visit is <span id="headline-status">being coordinated</span></h1>
         <p id="headline-copy">Care Relay is watching every commitment around this appointment.</p>
       </div>
-      <div class="readiness-card">
-        <div class="ring" id="ring"><strong id="readiness">0%</strong></div>
-        <div><span>Visit readiness</span><small id="readiness-note">Verified dependencies</small></div>
+      <div class="readiness-stack">
+        <div class="readiness-card">
+          <div class="ring" id="ring"><strong id="readiness">0%</strong></div>
+          <div><span>Visit readiness</span><small id="readiness-note">Verified dependencies</small><em class="provenance-label layer-code">Enforced by code</em></div>
+        </div>
+        <div class="evidence-legend" aria-label="Evidence state legend">
+          <span class="legend-claim">“ ” Claimed</span>
+          <span class="legend-fact">! Contradicted</span>
+          <span class="legend-verified">✓ Verified</span>
+        </div>
       </div>
     </section>
 
@@ -43,7 +50,7 @@
       <div class="main-column">
         <article class="panel journey-panel">
           <div class="panel-heading">
-            <div><span class="kicker">LIVE JOURNEY</span><h2>What must be true before the visit</h2></div>
+            <div><span class="kicker">Visit dependencies</span><h2>What must be true before the visit</h2></div>
             <div class="journey-actions">
               <button class="advance" id="live-agent" hidden><span class="spark">✦</span> Simulate incoming provider update</button>
             </div>
@@ -57,25 +64,29 @@
 
         <article class="panel activity-panel">
           <div class="panel-heading compact">
-            <div><span class="kicker">AGENT ACTIVITY</span><h2>Work happening in the background</h2></div>
+            <div><span class="kicker">Agent activity</span><h2>Work happening now</h2></div>
             <span class="live-label"><span class="pulse"></span> Live</span>
+          </div>
+          <div class="agent-key" aria-label="Agent permission boundaries">
+            <div class="agent-key-item coordinator-key"><span>C</span><p><strong>Coordinator</strong><small>case · calendar · approved contacts</small></p></div>
+            <div class="agent-key-item verifier-key"><span>V</span><p><strong>Verifier</strong><small>evidence only · <s>contacts</s> · <s>scheduling</s></small></p></div>
           </div>
           <div id="activity" class="activity-list"></div>
         </article>
 
         <article class="panel trace-panel" id="trace-panel" hidden>
           <div class="panel-heading compact">
-            <div><span class="kicker">STRANDS TRACE</span><h2>Agent execution</h2></div>
-            <span class="trace-safe">Inputs redacted</span>
+            <div><span class="kicker">Strands trace</span><h2>Agent execution</h2></div>
+            <span class="trace-safe">Sensitive values hidden · tool structure preserved</span>
           </div>
           <div id="trace-summary" class="trace-summary"></div>
-          <div id="traces" class="trace-list"></div>
+          <details class="trace-details"><summary>Inspect tool execution</summary><div id="traces" class="trace-list"></div></details>
         </article>
       </div>
 
       <aside>
         <article class="panel appointment-panel">
-          <span class="kicker">NEXT APPOINTMENT</span>
+          <span class="kicker">Next appointment</span>
           <div class="date-tile"><strong id="day">10</strong><span id="month">SEP</span></div>
           <h3>Imaging appointment</h3>
           <p id="appointment-time"></p>
@@ -83,13 +94,14 @@
         </article>
 
         <article class="panel evidence-panel">
-          <div class="panel-heading compact"><div><span class="kicker">CASE RECORD</span><h2>Evidence trail</h2></div></div>
+          <div class="panel-heading compact"><div><span class="kicker">Case record</span><h2>Evidence trail</h2></div></div>
           <div id="evidence"></div>
         </article>
 
         <article class="panel policy-panel">
-          <span class="kicker">AUTONOMY POLICY</span>
+          <span class="kicker">Autonomy policy</span>
           <h2>When agents may act</h2>
+          <em class="provenance-label layer-code">Enforced by code</em>
           <div class="policy-rule auto"><span>✓</span><p><strong>Run quietly</strong>Read-only checks, approved family transport, same-provider follow-up within 7 days</p></div>
           <div class="policy-rule ask"><span>!</span><p><strong>Ask Aisha</strong>External identifier disclosure or exceptions to standing permissions</p></div>
           <div class="policy-rule deny"><span>×</span><p><strong>Never act</strong>Diagnosis, treatment, medication, or urgency decisions</p></div>

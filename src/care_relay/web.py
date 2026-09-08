@@ -370,14 +370,70 @@ class DemoSession:
             "propose_referral_correction": "Prepared a narrowly scoped correction for approval.",
             "send_referral_correction": "Sent the approved referral correction.",
             "verify_corrected_referral": "Independently verified recipient acceptance.",
+            "ask_verification_agent": "Delegated the disputed handoff to the independent Verifier.",
         }
+        progress_messages = {
+            "record_appointment_change": "Applying the provider update to dependent commitments…",
+            "list_approved_family_members": "Finding transport options inside Aisha’s approved circle…",
+            "check_family_availability": "Checking whether an approved family member can take the new time…",
+            "request_family_transport": "Requesting replacement transportation…",
+            "get_available_follow_up_slots": "Checking valid follow-up windows after the new appointment…",
+            "reschedule_follow_up": "Moving the follow-up within standing permission…",
+            "ask_verification_agent": "Delegating the disputed handoff to the independent Verifier…",
+            "check_referral_receipt": "Checking the Imaging department’s receipt record…",
+            "inspect_transmission": "Inspecting where the original transmission actually went…",
+            "propose_referral_correction": "Preparing the smallest correction that could resolve the blocker…",
+            "send_referral_correction": "Waiting at the protected disclosure boundary…",
+            "verify_corrected_referral": "Confirming receipt with Imaging independently…",
+        }
+        evidence_tools = {
+            "check_referral_receipt",
+            "inspect_transmission",
+            "verify_corrected_referral",
+        }
+        code_tools = {"record_appointment_change"}
         live = []
         seen_messages: set[str] = set()
+        for item in traces:
+            details = item.get("details", {})
+            if item.get("event") != "tool_selected":
+                continue
+            tool_name = details.get("tool")
+            if tool_name not in progress_messages:
+                continue
+            later_finish = any(
+                later.get("event") == "tool_finished"
+                and later.get("agent") == item.get("agent")
+                and later.get("details", {}).get("tool") == tool_name
+                and later.get("sequence", 0) > item.get("sequence", 0)
+                for later in traces
+            )
+            if not later_finish:
+                live.append(
+                    {
+                        "agent": "Verifier" if item.get("agent") == "verification_agent" else "Coordinator",
+                        "kind": "in progress",
+                        "layer": "evidence" if tool_name in evidence_tools else "code" if tool_name in code_tools else "agent",
+                        "message": progress_messages[tool_name],
+                        "duration": "working now",
+                    }
+                )
         for item in reversed(traces):
-            tool_name = item.get("details", {}).get("tool")
+            details = item.get("details", {})
+            tool_name = details.get("tool")
             if item.get("event") != "tool_finished" or tool_name not in messages:
                 continue
-            message = messages[tool_name]
+            status = details.get("status")
+            if tool_name == "send_referral_correction" and status == "cancelled":
+                message = "Respected Aisha’s decision; the correction remained unsent."
+                kind = "human boundary"
+                layer = "code"
+            elif status == "success":
+                message = messages[tool_name]
+                kind = "verified" if "verify" in tool_name else "acted"
+                layer = "evidence" if tool_name in evidence_tools else "code" if tool_name in code_tools else "agent"
+            else:
+                continue
             if message in seen_messages:
                 continue
             seen_messages.add(message)
@@ -386,8 +442,10 @@ class DemoSession:
                     "agent": "Verifier"
                     if item.get("agent") == "verification_agent"
                     else "Coordinator",
-                    "kind": "verified" if "verify" in tool_name else "acted",
+                    "kind": kind,
+                    "layer": layer,
                     "message": message,
+                    "duration": f"{details['duration_ms'] / 1000:.1f}s" if details.get("duration_ms") and details["duration_ms"] >= 1000 else "",
                 }
             )
         return live[:10] + list(reversed(self.activity))
@@ -586,6 +644,11 @@ def demo() -> FileResponse:
 @app.get("/landing.css")
 def landing_styles() -> FileResponse:
     return FileResponse(STATIC_DIR / "landing.css")
+
+
+@app.get("/landing.js")
+def landing_script() -> FileResponse:
+    return FileResponse(STATIC_DIR / "landing.js")
 
 
 @app.get("/favicon.svg")

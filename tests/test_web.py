@@ -128,6 +128,76 @@ def test_declined_correction_stays_blocked_and_is_never_sent(tmp_path):
     )
 
 
+def test_cancelled_protected_tool_is_not_reported_as_sent(tmp_path):
+    session = DemoSession(CaseRepository(tmp_path / "dashboard.db"))
+    traces = [
+        {
+            "event": "tool_finished",
+            "agent": "coordinator_agent",
+            "details": {"tool": "send_referral_correction", "status": "cancelled"},
+        }
+    ]
+
+    activity = session._visible_activity(traces)
+
+    assert activity[0]["kind"] == "human boundary"
+    assert activity[0]["layer"] == "code"
+    assert "remained unsent" in activity[0]["message"]
+    assert all("Sent the approved" not in item["message"] for item in activity)
+
+
+def test_selected_tool_exposes_agent_moment_of_not_knowing(tmp_path):
+    session = DemoSession(CaseRepository(tmp_path / "dashboard.db"))
+    traces = [
+        {
+            "sequence": 10,
+            "event": "tool_selected",
+            "agent": "verification_agent",
+            "details": {"tool": "check_referral_receipt"},
+        }
+    ]
+
+    activity = session._visible_activity(traces)
+
+    assert activity[0] == {
+        "agent": "Verifier",
+        "kind": "in progress",
+        "layer": "evidence",
+        "message": "Checking the Imaging department’s receipt record…",
+        "duration": "working now",
+    }
+
+
+def test_completed_tool_replaces_matching_live_intent_and_shows_duration(tmp_path):
+    session = DemoSession(CaseRepository(tmp_path / "dashboard.db"))
+    traces = [
+        {
+            "sequence": 10,
+            "event": "tool_selected",
+            "agent": "verification_agent",
+            "details": {"tool": "check_referral_receipt"},
+        },
+        {
+            "sequence": 11,
+            "event": "tool_finished",
+            "agent": "verification_agent",
+            "details": {
+                "tool": "check_referral_receipt",
+                "status": "success",
+                "duration_ms": 13700,
+            },
+        },
+    ]
+
+    activity = session._visible_activity(traces)
+    verifier_activity = [item for item in activity if item["agent"] == "Verifier"]
+
+    assert len(verifier_activity) == 1
+    assert verifier_activity[0]["kind"] == "acted"
+    assert verifier_activity[0]["layer"] == "evidence"
+    assert verifier_activity[0]["duration"] == "13.7s"
+
+
 def test_background_agent_run_returns_immediately_and_exposes_running_state(
     tmp_path, monkeypatch
 ):
