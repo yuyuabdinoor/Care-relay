@@ -1,6 +1,6 @@
 # Care Relay architecture
 
-![Care Relay system architecture](architecture.svg)
+![Care Relay system architecture](care-relay-architecture.svg)
 
 Care Relay deliberately separates judgment, authority, and state validity. Strands
 Agents decides what work to attempt and when to delegate it. Deterministic application
