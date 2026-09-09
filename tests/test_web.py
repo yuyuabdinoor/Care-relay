@@ -36,11 +36,30 @@ def test_dashboard_exposes_live_agent_path_only():
     state = client.post("/api/demo/reset").json()
     assert state["case"]["readiness"] == 50
     assert len(state["dependencies"]) == 2
+    assert state["connected_systems"]["calendar"]["previous_appointment_at"] is None
+    assert state["connected_systems"]["provider_portal"]["receipt_verified"] is False
     assert state["can_process_event"] is True
 
     assert "can_advance" not in state
     assert client.post("/api/demo/advance").status_code == 404
     assert client.post("/api/approvals/APR-1001", json={"approved": True}).status_code == 404
+
+
+def test_connected_systems_reflect_tool_backed_changes(tmp_path):
+    session = DemoSession(CaseRepository(tmp_path / "dashboard.db"))
+    session.advance()
+    session.advance()
+    changed = session.snapshot()["connected_systems"]
+
+    assert changed["calendar"]["previous_appointment_at"] == "2026-09-10T10:00:00-04:00"
+    assert changed["calendar"]["appointment_at"] == "2026-09-11T14:30:00-04:00"
+    assert changed["family_messages"]["driver"] == "Elena"
+    assert changed["family_messages"]["status"] == "verified"
+
+    session.advance()
+    session.advance()
+    discovered = session.snapshot()["connected_systems"]["provider_portal"]
+    assert discovered["discovered_destination"] == "Northside General Records"
 
 
 def test_demo_session_restores_case_after_process_restart(tmp_path):

@@ -347,6 +347,7 @@ class DemoSession:
             "approvals": approvals,
             "activity": self._visible_activity(traces),
             "external_events": list(reversed(self.external_events)),
+            "connected_systems": self._connected_systems(),
             "ledger": [asdict(entry) for entry in reversed(self.case.ledger)],
             "stage": self.stage,
             "can_start_agents": self.stage == 1 and self.agent_run is None,
@@ -355,6 +356,77 @@ class DemoSession:
             "complete": self.case.status.value == "ready",
             "agent_runtime": runtime_status,
             "traces": traces,
+        }
+
+    def _connected_systems(self) -> dict[str, Any]:
+        """Expose the synthetic counterparties agents have actually changed."""
+        appointment_change = next(
+            (
+                entry
+                for entry in reversed(self.case.ledger)
+                if entry.event_type is EventType.APPOINTMENT_MOVED
+            ),
+            None,
+        )
+        case_opened = next(
+            (
+                entry
+                for entry in self.case.ledger
+                if entry.event_type is EventType.CASE_OPENED
+            ),
+            None,
+        )
+        follow_up_change = next(
+            (
+                entry
+                for entry in reversed(self.case.ledger)
+                if entry.event_type is EventType.FOLLOW_UP_RESCHEDULED
+            ),
+            None,
+        )
+        referral = self.case.commitments.get("referral")
+        transport = self.case.commitments.get("transport")
+        inspected = next(
+            (
+                evidence
+                for evidence in self.case.evidence.values()
+                if evidence.commitment_id == "referral"
+                and evidence.kind.value == "fact"
+            ),
+            None,
+        )
+        correction = next(
+            (
+                message
+                for message in self.tools.world.sent_messages
+                if message.get("message_type") == "referral_correction"
+            ),
+            None,
+        )
+        return {
+            "calendar": {
+                "appointment_at": self.case.appointment_at,
+                "previous_appointment_at": case_opened.details.get("appointment_at")
+                if appointment_change and case_opened
+                else None,
+                "follow_up_at": follow_up_change.details.get("follow_up_at")
+                if follow_up_change
+                else None,
+            },
+            "family_messages": {
+                "driver": transport.owner if transport else None,
+                "status": transport.state.value if transport else "discovered",
+                "appointment_at": self.case.appointment_at,
+                "previous_driver": "Marcus" if appointment_change else None,
+            },
+            "provider_portal": {
+                "claim": "Sent by Riverside Orthopedics",
+                "state": referral.state.value if referral else "discovered",
+                "discovered_destination": "Northside General Records" if inspected else None,
+                "required_destination": "Northside Imaging Department",
+                "correction_sent": correction is not None,
+                "receipt_verified": self.tools.world.imaging_has_valid_referral,
+            },
         }
 
     def _visible_activity(self, traces: list[dict[str, Any]]) -> list[dict[str, str]]:

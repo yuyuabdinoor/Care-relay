@@ -8,6 +8,7 @@ let state;
 let decisionInFlight = false;
 let pollTimer;
 let previousCommitmentStates = {};
+let previousSystemStates = {};
 
 async function api(path, options = {}) {
   const response = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -23,6 +24,7 @@ function stateLabel(value) {
 function agentClass(agent) { return agent === "Verifier" ? "verifier" : agent === "Aisha" ? "human" : "coordinator"; }
 function initials(agent) { return agent === "Verifier" ? "V" : agent === "Aisha" ? "A" : "C"; }
 function fmtDate(value) { return new Date(value).toLocaleString("en-US", { weekday:"long", month:"long", day:"numeric", hour:"numeric", minute:"2-digit" }); }
+function shortDate(value) { return value ? new Date(value).toLocaleString("en-US", {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}) : "Not scheduled"; }
 
 function render(data) {
   state = data;
@@ -72,6 +74,37 @@ function render(data) {
   document.querySelector("#dependency-map").innerHTML = data.stage > 0 && dependencies.length ? `<div class="dependency-map"><div class="dependency-map-label">causal graph</div><em class="provenance-label layer-code graph-provenance">Enforced by code</em><div class="dependency-source"><strong>${labels[byId[dependencies[0].source_id].kind].name}</strong><span>Time changed</span></div><div class="dependency-branches">${dependencies.map(edge => `<div class="dependency-edge"><span class="dependency-arrow">→</span><div class="dependency-target ${changedSources.has(edge.source_id) && byId[edge.target_id].state === "blocked" ? "affected" : ""}"><strong>${labels[byId[edge.target_id].kind].name}</strong><span>${edge.relation}</span><em class="edge-state ${byId[edge.target_id].state}">${niceState(byId[edge.target_id].state)}</em></div></div>`).join("")}</div><p class="graph-note">Referral was discovered independently during verification—not caused by this appointment ripple.</p></div>` : "";
   document.querySelector("#commitments").innerHTML = data.commitments.map(item => `<div class="commitment ${item.state} ${previousCommitmentStates[item.id] && previousCommitmentStates[item.id] !== item.state ? "state-changed" : ""}"><div class="node-icon">${labels[item.kind].icon}</div><h3>${labels[item.kind].name}</h3><p>${item.blocker || `${item.label}<br>Owner: ${item.owner || "Unassigned"}`}</p><span class="state">${stateLabel(item.state)}</span></div>`).join("");
   previousCommitmentStates = Object.fromEntries(data.commitments.map(item => [item.id, item.state]));
+
+  const systems = data.connected_systems;
+  const calendarMoved = Boolean(systems.calendar.previous_appointment_at);
+  const rideAccepted = systems.family_messages.status === "verified";
+  const portal = systems.provider_portal;
+  const portalStatus = portal.receipt_verified ? "Received and accepted" : portal.correction_sent ? "Correction delivered" : portal.discovered_destination ? "Wrong destination found" : "Sender reports sent";
+  const systemStates = {
+    calendar: `${systems.calendar.appointment_at}|${systems.calendar.follow_up_at}`,
+    messages: `${systems.family_messages.driver}|${systems.family_messages.status}`,
+    portal: `${portal.state}|${portal.correction_sent}|${portal.receipt_verified}`,
+  };
+  const changed = key => previousSystemStates[key] && previousSystemStates[key] !== systemStates[key] ? "system-changed" : "";
+  document.querySelector("#connected-systems").innerHTML = `
+    <section class="system-card ${changed("calendar")}">
+      <div class="system-card-head"><span class="system-icon calendar-icon">▦</span><div><b>Family calendar</b><small>${calendarMoved ? "Event updated by agent" : "Original schedule"}</small></div><em>${calendarMoved ? "UPDATED" : "WATCHING"}</em></div>
+      ${calendarMoved ? `<div class="calendar-old"><span>${shortDate(systems.calendar.previous_appointment_at)}</span><s>Imaging appointment</s></div>` : ""}
+      <div class="calendar-event"><span>${shortDate(systems.calendar.appointment_at)}</span><strong>Imaging appointment</strong><small>Northside Imaging · Building C</small></div>
+      ${systems.calendar.follow_up_at ? `<div class="calendar-followup"><span>${shortDate(systems.calendar.follow_up_at)}</span><b>Follow-up moved after imaging</b></div>` : `<p class="system-wait">Follow-up waiting on the new appointment.</p>`}
+    </section>
+    <section class="system-card ${changed("messages")}">
+      <div class="system-card-head"><span class="system-icon message-icon">↗</span><div><b>Family messages</b><small>Approved transport circle</small></div><em>${rideAccepted ? "ACCEPTED" : calendarMoved ? "NEEDS RIDE" : "ARRANGED"}</em></div>
+      ${calendarMoved ? `<div class="message-bubble old-message"><b>Marcus</b><span>My ride was for ${shortDate(systems.calendar.previous_appointment_at)}.</span></div>` : `<div class="message-bubble"><b>Marcus</b><span>I can drive Daniel to the appointment.</span></div>`}
+      ${rideAccepted ? `<div class="message-bubble accepted-message"><b>${systems.family_messages.driver}</b><span>Accepted the new pickup for ${shortDate(systems.family_messages.appointment_at)}.</span><i>✓ Confirmed</i></div>` : calendarMoved ? `<div class="message-search"><span></span>Care Relay is checking approved family...</div>` : ""}
+    </section>
+    <section class="system-card portal-card ${changed("portal")}">
+      <div class="system-card-head"><span class="system-icon portal-icon">⌁</span><div><b>Provider portal</b><small>Referral delivery record</small></div><em class="portal-state-${portal.state}">${portalStatus.toUpperCase()}</em></div>
+      <div class="portal-route"><small>Original transmission</small><strong>Riverside Orthopedics</strong><span>→</span><b>${portal.discovered_destination || "Destination not independently checked"}</b></div>
+      ${portal.discovered_destination ? `<div class="portal-warning">! Required destination: ${portal.required_destination}</div>` : `<p class="system-wait">Claim recorded. Independent receipt check pending.</p>`}
+      ${portal.correction_sent ? `<div class="portal-correction"><span>TX-8842</span><b>Correction sent to Imaging</b><em>${portal.receipt_verified ? "✓ Receipt verified" : "Awaiting receipt"}</em></div>` : ""}
+    </section>`;
+  previousSystemStates = systemStates;
 
   document.querySelector("#activity").innerHTML = data.activity.map(item => `<div class="activity-row ${agentClass(item.agent)} activity-${item.layer || "agent"}"><span class="agent-dot">${initials(item.agent)}</span><div><strong>${item.agent}</strong><span class="provenance-label layer-${item.layer || "agent"}">${item.layer === "code" ? "Enforced by code" : item.layer === "evidence" ? "Confirmed by evidence" : "Chosen by agent"}</span><p>${item.message}</p></div><em>${item.duration || item.kind}</em></div>`).join("");
   const tracePanel = document.querySelector("#trace-panel");
