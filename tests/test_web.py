@@ -1,8 +1,11 @@
 import time
 from threading import Event
 
+import pytest
 from fastapi.testclient import TestClient
 
+from care_relay.engine import InvalidTransition
+from care_relay.observability import TraceCollector
 from care_relay.repository import CaseRepository
 from care_relay.web import (
     AgentDecision,
@@ -104,6 +107,25 @@ def test_repeated_matching_resume_is_idempotent_after_completion(tmp_path):
     session.resume_agent_run(
         AgentDecision(approval_id="APR-1001", approved=True, decided_by="Aisha")
     )
+
+
+def test_resume_rejects_pending_approval_without_strands_interrupt(tmp_path):
+    session = DemoSession(CaseRepository(tmp_path / "dashboard.db"))
+    for _ in range(5):
+        session.advance()
+
+    session.agent_run = type(
+        "UninterruptedRun",
+        (),
+        {"pending_interrupts": [], "trace_collector": TraceCollector()},
+    )()
+
+    with pytest.raises(InvalidTransition, match="has not paused"):
+        session.begin_resume(
+            AgentDecision(approval_id="APR-1001", approved=True, decided_by="Aisha")
+        )
+
+    assert session.case.approvals["APR-1001"].status.value == "pending"
 
 
 def test_declined_correction_stays_blocked_and_is_never_sent(tmp_path):

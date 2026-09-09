@@ -516,6 +516,10 @@ class DemoSession:
             if recorded_approved != decision.approved:
                 raise InvalidTransition("Recorded approval decision cannot be changed")
             return
+        if not self.agent_run.pending_interrupts:
+            raise InvalidTransition(
+                "Strands has not paused at the protected action. Reset and retry the live run."
+            )
         self.tools.record_approval(
             decision.approval_id,
             decision.approved,
@@ -603,6 +607,10 @@ class DemoSession:
             if recorded_approved != decision.approved:
                 raise InvalidTransition("Recorded approval decision cannot be changed")
             return
+        if not self.agent_run.pending_interrupts:
+            raise InvalidTransition(
+                "Strands has not paused at the protected action. Reset and retry the live run."
+            )
         self.tools.record_approval(
             decision.approval_id,
             decision.approved,

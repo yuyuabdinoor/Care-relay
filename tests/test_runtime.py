@@ -156,6 +156,28 @@ def test_agent_run_rejects_invalid_lifecycle_calls():
         run.start()
 
 
+def test_pending_application_approval_forces_native_strands_interrupt():
+    run = build_fake_run()
+    run.services.case.pending_approvals = [object()]
+
+    class EndsBeforeProtectedTool(FakeCoordinator):
+        def __call__(self, value):
+            self.inputs.append(value)
+            if len(self.inputs) == 1:
+                return FakeResult("end_turn")
+            return FakeResult(
+                "interrupt",
+                [FakeInterrupt("INT-1", "strands:human-in-the-loop", "Approve send?")],
+            )
+
+    run.bundle.coordinator = EndsBeforeProtectedTool()
+
+    result = run._invoke_until_external_boundary("continue")
+
+    assert result.stop_reason == "interrupt"
+    assert "human-in-the-loop boundary" in run.bundle.coordinator.inputs[-1]
+
+
 def test_external_message_is_delimited_as_untrusted_content():
     run = build_fake_run()
     run.start_from_external_message(

@@ -129,19 +129,28 @@ SUBJECT: {subject}
                 item.state in {CommitmentState.CLAIMED, CommitmentState.CONFLICTED}
                 for item in self.services.case.commitments.values()
             )
+            pending_application_approval = bool(self.services.case.pending_approvals)
             if (
                 result.stop_reason == "end_turn"
-                and unresolved_claim
-                and not self.services.case.pending_approvals
+                and (unresolved_claim or pending_application_approval)
                 and continuation_count < 2
             ):
                 continuation_count += 1
-                result = self.bundle.coordinator(
-                    "The deterministic case gate still contains an unverified claim or "
-                    "conflict. Continue working now: delegate independent verification, "
-                    "use the available tools, and do not describe the case as complete "
-                    "until every required commitment is verified."
-                )
+                if pending_application_approval:
+                    continuation = (
+                        "A deterministic approval request is pending, but Strands has not "
+                        "reached its human-in-the-loop boundary. Continue working now and "
+                        "attempt the corresponding protected tool so Strands can interrupt "
+                        "before execution. Do not ask for approval only in prose."
+                    )
+                else:
+                    continuation = (
+                        "The deterministic case gate still contains an unverified claim or "
+                        "conflict. Continue working now: delegate independent verification, "
+                        "use the available tools, and do not describe the case as complete "
+                        "until every required commitment is verified."
+                    )
+                result = self.bundle.coordinator(continuation)
                 continue
             break
         return result
