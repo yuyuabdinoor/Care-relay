@@ -14,6 +14,31 @@ verified.
 
 Built for the **Everyday Agents** track of the Agents for Humans Hackathon.
 
+## Potential impact
+
+Family care coordination is not an occasional edge case. The
+[Caregiving in the U.S. 2025](https://www.aarp.org/pri/topics/ltss/family-caregiving/caregiving-in-the-us-2025/)
+report from AARP and the National Alliance for Caregiving estimates that 63
+million Americans, nearly one in four adults, provide ongoing care for another
+person. Caregivers spend an average of 27 hours each week providing care, and
+24% provide at least 40 hours.
+
+Care Relay focuses on one part of that burden: the administrative work around
+care. Appointments, transportation, follow-ups, and referrals are separate
+commitments, but they depend on one another. When a schedule changes, the
+caregiver often has to discover and repair the whole chain again.
+
+The demo follows one outpatient imaging visit so it can show that pattern from
+the first disruption through independent verification. The current MVP is
+imaging-specific. Its commitment, dependency, evidence, and approval model was
+designed to extend to other recurring workflows such as therapy appointments,
+equipment delivery, prescription pickup, and home-care scheduling. Those
+workflows are future work, not features claimed by this submission.
+
+Care Relay does not automate medical judgment. It reduces repetitive
+coordination between providers, calendars, relatives, and administrative
+systems while keeping consequential actions under human control.
+
 ## Architecture
 
 ![Care Relay architecture](docs/care-relay-architecture.svg)
