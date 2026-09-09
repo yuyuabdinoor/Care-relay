@@ -2,6 +2,7 @@
 
 import pytest
 
+from care_relay.calendar import CalendarConfirmation, CalendarUpdateError
 from care_relay.demo import build_demo_case, run_demo
 from care_relay.engine import InvalidTransition, apply_event
 from care_relay.models import ApprovalStatus, CaseStatus, CommitmentState, EventType
@@ -17,6 +18,20 @@ def opened_case():
         {
             "appointment_at": "2026-09-10T10:00:00-04:00",
             "transport_owner": "Marcus",
+        },
+    )
+    return case
+
+
+def moved_case():
+    case = opened_case()
+    apply_event(
+        case,
+        EventType.APPOINTMENT_MOVED,
+        "test",
+        {
+            "new_appointment_at": "2026-09-11T14:30:00-04:00",
+            "source": "MSG-1",
         },
     )
     return case
@@ -250,3 +265,61 @@ def test_agents_must_choose_discoverable_people_and_calendar_slots():
     rejected = tools.reschedule_follow_up("2026-09-12T10:00:00-04:00")
     assert rejected["rescheduled"] is False
     assert case.commitments["follow_up"].state is CommitmentState.BLOCKED
+
+
+class RecordingCalendar:
+    backend = "google"
+
+    def __init__(self, *, fail: bool = False):
+        self.fail = fail
+        self.calls = []
+
+    def reschedule_follow_up(self, *, follow_up_at, action_id):
+        self.calls.append((follow_up_at, action_id))
+        if self.fail:
+            raise CalendarUpdateError("provider unavailable")
+        return CalendarConfirmation(
+            backend="google",
+            event_id="google-event-1",
+            scheduled_at=follow_up_at,
+            html_link="https://www.google.com/calendar/event?eid=test",
+            provider_updated_at="2026-09-09T12:00:00Z",
+        )
+
+    def reset_follow_up(self):
+        raise NotImplementedError
+
+
+def test_google_confirmation_precedes_internal_follow_up_verification():
+    case = moved_case()
+    calendar = RecordingCalendar()
+    tools = CareRelayTools(case, calendar_gateway=calendar)
+
+    result = tools.reschedule_follow_up("2026-09-15T11:00:00-04:00")
+
+    assert result["calendar"]["backend"] == "google"
+    assert result["calendar"]["event_id"] == "google-event-1"
+    assert calendar.calls == [
+        (
+            "2026-09-15T11:00:00-04:00",
+            "VISIT-1042:follow-up:2026-09-15T11:00:00-04:00",
+        )
+    ]
+    assert case.commitments["follow_up"].state is CommitmentState.VERIFIED
+    evidence = [case.evidence[eid] for eid in case.commitments["follow_up"].evidence_ids]
+    assert evidence[-1].source == "Google Calendar"
+
+
+def test_google_failure_leaves_follow_up_blocked_without_evidence():
+    case = moved_case()
+    calendar = RecordingCalendar(fail=True)
+    tools = CareRelayTools(case, calendar_gateway=calendar)
+    ledger_size = len(case.ledger)
+    evidence_size = len(case.evidence)
+
+    with pytest.raises(CalendarUpdateError, match="provider unavailable"):
+        tools.reschedule_follow_up("2026-09-15T11:00:00-04:00")
+
+    assert case.commitments["follow_up"].state is CommitmentState.BLOCKED
+    assert len(case.ledger) == ledger_size
+    assert len(case.evidence) == evidence_size

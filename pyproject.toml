@@ -12,6 +12,8 @@ license = { text = "MIT" }
 dependencies = [
   "botocore[crt]>=1.29",
   "fastapi>=0.115",
+  "google-api-python-client>=2.170",
+  "google-auth>=2.40",
   "python-dotenv>=1.0",
   "strands-agents>=1.0",
   "uvicorn[standard]>=0.30",
@@ -25,6 +27,7 @@ dev = [
 
 [project.scripts]
 care-relay-dashboard = "care_relay.web:main"
+care-relay-calendar-setup = "care_relay.calendar_setup:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/care_relay"]

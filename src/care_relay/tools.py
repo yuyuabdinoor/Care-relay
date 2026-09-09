@@ -12,6 +12,7 @@ from datetime import datetime
 from threading import RLock
 from typing import Any
 
+from care_relay.calendar import CalendarGateway, DemoCalendarGateway
 from care_relay.engine import apply_event
 from care_relay.models import ApprovalStatus, CareCase, CommitmentState, EventType
 from care_relay.policy import PolicyContext, PolicyDecision, evaluate_action
@@ -38,6 +39,7 @@ class SyntheticWorld:
     )
     imaging_has_valid_referral: bool = False
     sent_messages: list[dict[str, Any]] = field(default_factory=list)
+    calendar_updates: list[dict[str, Any]] = field(default_factory=list)
 
 
 class CareRelayTools:
@@ -49,11 +51,13 @@ class CareRelayTools:
         world: SyntheticWorld | None = None,
         policy_context: PolicyContext | None = None,
         state_lock: RLock | None = None,
+        calendar_gateway: CalendarGateway | None = None,
     ) -> None:
         self.case = case
         self.world = world or SyntheticWorld()
         self.policy_context = policy_context or PolicyContext()
         self.state_lock = state_lock
+        self.calendar_gateway = calendar_gateway or DemoCalendarGateway()
 
     def get_case_snapshot(self) -> dict[str, Any]:
         """Return current administrative case state without hidden world state."""
@@ -355,7 +359,7 @@ class CareRelayTools:
         }
 
     def reschedule_follow_up(self, follow_up_at: str) -> dict[str, Any]:
-        """Apply the synthetic scheduling system's deterministic date-order check."""
+        """Update the configured calendar, then record its confirmation as evidence."""
         policy = evaluate_action(
             "reschedule_follow_up",
             context=self.policy_context,
@@ -380,7 +384,18 @@ class CareRelayTools:
                 "policy": asdict(policy),
             }
         if self.case.commitments["follow_up"].state is CommitmentState.VERIFIED:
-            return {"rescheduled": True, "follow_up_at": follow_up_at, "already_scheduled": True}
+            existing = self.world.calendar_updates[-1] if self.world.calendar_updates else None
+            return {
+                "rescheduled": True,
+                "follow_up_at": follow_up_at,
+                "already_scheduled": True,
+                "calendar": existing,
+            }
+        action_id = f"{self.case.case_id}:follow-up:{follow_up_at}"
+        confirmation = self.calendar_gateway.reschedule_follow_up(
+            follow_up_at=follow_up_at,
+            action_id=action_id,
+        )
         after_appointment = self.case.appointment_at is not None and follow_up_at > self.case.appointment_at
         apply_event(
             self.case,
@@ -389,7 +404,16 @@ class CareRelayTools:
             {
                 "follow_up_at": follow_up_at,
                 "after_appointment": after_appointment,
-                "source": "Riverside Orthopedics",
+                "source": "Google Calendar"
+                if confirmation.backend == "google"
+                else "Riverside Orthopedics",
             },
         )
-        return {"rescheduled": True, "follow_up_at": follow_up_at, "policy": asdict(policy)}
+        receipt = confirmation.as_dict()
+        self.world.calendar_updates.append(receipt)
+        return {
+            "rescheduled": True,
+            "follow_up_at": follow_up_at,
+            "policy": asdict(policy),
+            "calendar": receipt,
+        }

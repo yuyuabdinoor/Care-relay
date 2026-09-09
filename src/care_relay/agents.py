@@ -235,7 +235,7 @@ def build_agents(
 
     @tool
     def reschedule_follow_up(follow_up_at: str) -> str:
-        """Reschedule the synthetic follow-up after the current imaging appointment.
+        """Reschedule the follow-up in the configured calendar after imaging.
 
         Args:
             follow_up_at: Proposed ISO-8601 follow-up time.

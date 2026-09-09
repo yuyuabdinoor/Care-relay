@@ -11,10 +11,16 @@ from typing import Any, ClassVar
 from uuid import uuid4
 
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+from care_relay.calendar import (
+    INITIAL_FOLLOW_UP_AT,
+    CalendarUpdateError,
+    calendar_gateway_from_env,
+)
 from care_relay.demo import build_demo_case
 from care_relay.engine import InvalidTransition, apply_event
 from care_relay.models import ApprovalStatus, EventType
@@ -25,6 +31,7 @@ from care_relay.tools import CareRelayTools
 
 STATIC_DIR = Path(__file__).with_name("static")
 LOGGER = logging.getLogger(__name__)
+load_dotenv()
 
 
 def _public_runtime_error(exc: Exception) -> str:
@@ -36,6 +43,8 @@ def _public_runtime_error(exc: Exception) -> str:
         return "Bedrock access was denied. Confirm the AWS profile and model access, then retry."
     if "throttl" in detail:
         return "Bedrock is temporarily throttling requests. Wait briefly, then retry."
+    if "calendarupdateerror" in detail:
+        return "Google Calendar did not confirm the update. The follow-up remains blocked."
     return "The live agent run stopped safely. Check the server log, then reset and retry."
 
 
@@ -89,6 +98,7 @@ class DemoSession:
 
     def __init__(self, repository: CaseRepository | None = None) -> None:
         self.lock = RLock()
+        self.calendar_gateway = calendar_gateway_from_env()
         self.repository = repository or CaseRepository(
             os.getenv("CARE_RELAY_DB_PATH", ".care-relay/care_relay.db")
         )
@@ -97,7 +107,12 @@ class DemoSession:
             self.reset()
         else:
             self.case = restored["case"]
-            self.tools = CareRelayTools(self.case, restored["world"], state_lock=self.lock)
+            self.tools = CareRelayTools(
+                self.case,
+                restored["world"],
+                state_lock=self.lock,
+                calendar_gateway=self.calendar_gateway,
+            )
             self.stage = restored["stage"]
             self.agent_session_id = restored.get(
                 "agent_session_id", f"care-relay-{uuid4().hex}"
@@ -109,9 +124,15 @@ class DemoSession:
             self.background_state = "idle"
             self.background_error: str | None = None
 
-    def reset(self) -> None:
+    def reset(self, *, reset_external_calendar: bool = False) -> None:
+        if reset_external_calendar:
+            self.calendar_gateway.reset_follow_up()
         self.case = build_demo_case()
-        self.tools = CareRelayTools(self.case, state_lock=self.lock)
+        self.tools = CareRelayTools(
+            self.case,
+            state_lock=self.lock,
+            calendar_gateway=self.calendar_gateway,
+        )
         self.stage = 0
         self.agent_session_id = f"care-relay-{uuid4().hex}"
         self.agent_run: AgentRun | None = None
@@ -406,11 +427,16 @@ class DemoSession:
         return {
             "calendar": {
                 "appointment_at": self.case.appointment_at,
+                "initial_follow_up_at": INITIAL_FOLLOW_UP_AT,
                 "previous_appointment_at": case_opened.details.get("appointment_at")
                 if appointment_change and case_opened
                 else None,
                 "follow_up_at": follow_up_change.details.get("follow_up_at")
                 if follow_up_change
+                else None,
+                "backend": self.calendar_gateway.backend,
+                "confirmation": self.tools.world.calendar_updates[-1]
+                if self.tools.world.calendar_updates
                 else None,
             },
             "family_messages": {
@@ -813,7 +839,10 @@ def reset_demo() -> dict[str, Any]:
     with session.lock:
         if session.background_state == "running":
             raise HTTPException(status_code=409, detail="Wait for the active agent run to stop")
-        session.reset()
+        try:
+            session.reset(reset_external_calendar=True)
+        except CalendarUpdateError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         return session.snapshot()
 
 

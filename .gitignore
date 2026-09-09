@@ -11,3 +11,6 @@ dist/
 build/
 *.egg-info/
 .care-relay/
+*service-account*.json
+*google-credentials*.json
+*calendar-credentials*.json

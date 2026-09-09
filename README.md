@@ -73,6 +73,8 @@ counterparties.
 - Structured Strands lifecycle and tool traces with sensitive input values redacted.
 - Unstructured external-message ingestion with explicit prompt-injection boundaries.
 - Idempotent external tools that tolerate agent, network, and checkpoint retries.
+- Optional Google Calendar adapter that updates one real synthetic follow-up event and
+  records the provider response before the commitment can become verified.
 - Deterministic standing-permission policy for autonomous, approval, and denied actions.
 - AgentCore-compatible `/ping` and `/invocations` runtime contract.
 - Non-root Python 3.12 container scaffold for ARM64 deployment.
@@ -125,6 +127,31 @@ ruff check .
 Unit tests use local test models to validate orchestration without consuming model
 tokens. The product and demo have no offline execution mode: runtime reasoning
 uses the Bedrock model configured in `.env` and requires valid AWS access.
+
+### Optional Google Calendar proof
+
+The final demo can make the Coordinator's follow-up repair visible in a dedicated
+Google Calendar. This integration updates one pre-created synthetic event; it does
+not read a personal calendar, send invitations, or contain real patient data.
+
+1. Create a Google Cloud project and enable the Google Calendar API.
+2. Create a service account and download its JSON key outside this repository.
+3. In Google Calendar, create a secondary calendar named `Care Relay Demo`.
+4. Share only that calendar with the service-account email and grant permission to
+   make changes to events.
+5. Add the credential path and calendar ID to `.env`, then prepare the two fixtures:
+
+```bash
+care-relay-calendar-setup
+```
+
+6. Copy the printed `CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID` value into `.env` and
+   restart the dashboard.
+
+When configured, `reschedule_follow_up` patches the same event rather than creating
+a duplicate. Google must return an event receipt before deterministic code records
+the follow-up as verified. A Google error leaves the commitment blocked. The reset
+button restores that external event to September 11 at 11:00 AM for another run.
 
 The web service also exposes `POST /api/agents/start` and
 `POST /api/agents/resume`. These are the Strands path: the first call runs

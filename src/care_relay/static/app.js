@@ -77,21 +77,28 @@ function render(data) {
 
   const systems = data.connected_systems;
   const calendarMoved = Boolean(systems.calendar.previous_appointment_at);
+  const googleCalendar = systems.calendar.backend === "google";
+  const calendarConfirmation = systems.calendar.confirmation;
   const rideAccepted = systems.family_messages.status === "verified";
   const portal = systems.provider_portal;
   const portalStatus = portal.receipt_verified ? "Received and accepted" : portal.correction_sent ? "Correction delivered" : portal.discovered_destination ? "Wrong destination found" : "Sender reports sent";
   const systemStates = {
-    calendar: `${systems.calendar.appointment_at}|${systems.calendar.follow_up_at}`,
+    calendar: `${systems.calendar.appointment_at}|${systems.calendar.follow_up_at}|${calendarConfirmation?.provider_updated_at || ""}`,
     messages: `${systems.family_messages.driver}|${systems.family_messages.status}`,
     portal: `${portal.state}|${portal.correction_sent}|${portal.receipt_verified}`,
   };
   const changed = key => previousSystemStates[key] && previousSystemStates[key] !== systemStates[key] ? "system-changed" : "";
+  document.querySelector("#system-proof").textContent = googleCalendar ? "Google Calendar connected" : "Tool-backed demo services";
+  const initialFollowUp = systems.calendar.initial_follow_up_at;
+  const calendarLink = googleCalendar && calendarConfirmation?.html_link?.startsWith("https://www.google.com/calendar/")
+    ? `<a class="calendar-external-link" href="${calendarConfirmation.html_link}" target="_blank" rel="noopener">Open in Google Calendar ↗</a>`
+    : "";
   document.querySelector("#connected-systems").innerHTML = `
     <section class="system-card ${changed("calendar")}">
-      <div class="system-card-head"><span class="system-icon calendar-icon">▦</span><div><b>Family calendar</b><small>${calendarMoved ? "Event updated by agent" : "Original schedule"}</small></div><em>${calendarMoved ? "UPDATED" : "WATCHING"}</em></div>
+      <div class="system-card-head"><span class="system-icon calendar-icon">▦</span><div><b>${googleCalendar ? "Google Calendar" : "Family calendar"}</b><small>${calendarConfirmation ? `${googleCalendar ? "External" : "Demo"} event confirmed` : calendarMoved ? "Schedule needs repair" : "Original schedule"}</small></div><em>${calendarConfirmation ? "CONFIRMED" : calendarMoved ? "CHANGED" : "WATCHING"}</em></div>
       ${calendarMoved ? `<div class="calendar-old"><span>${shortDate(systems.calendar.previous_appointment_at)}</span><s>Imaging appointment</s></div>` : ""}
       <div class="calendar-event"><span>${shortDate(systems.calendar.appointment_at)}</span><strong>Imaging appointment</strong><small>Northside Imaging · Building C</small></div>
-      ${systems.calendar.follow_up_at ? `<div class="calendar-followup"><span>${shortDate(systems.calendar.follow_up_at)}</span><b>Follow-up moved after imaging</b></div>` : `<p class="system-wait">Follow-up waiting on the new appointment.</p>`}
+      ${systems.calendar.follow_up_at ? `<div class="calendar-followup"><span>${shortDate(systems.calendar.follow_up_at)}</span><b>Follow-up moved after imaging</b><i>✓ ${googleCalendar ? "Google confirmed" : "Calendar confirmed"}</i></div>${calendarLink}` : calendarMoved ? `<div class="calendar-followup calendar-invalid"><span>${shortDate(initialFollowUp)}</span><b>Riverside follow-up</b><i>! Now occurs before imaging</i></div>` : `<div class="calendar-followup calendar-initial"><span>${shortDate(initialFollowUp)}</span><b>Riverside follow-up</b><i>✓ Valid after imaging</i></div>`}
     </section>
     <section class="system-card ${changed("messages")}">
       <div class="system-card-head"><span class="system-icon message-icon">↗</span><div><b>Family messages</b><small>Approved transport circle</small></div><em>${rideAccepted ? "ACCEPTED" : calendarMoved ? "NEEDS RIDE" : "ARRANGED"}</em></div>

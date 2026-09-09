@@ -67,6 +67,7 @@ class CaseRepository:
                 "referral_transmissions": world.referral_transmissions,
                 "imaging_has_valid_referral": world.imaging_has_valid_referral,
                 "sent_messages": world.sent_messages,
+                "calendar_updates": world.calendar_updates,
             },
             "stage": stage,
             "agent_session_id": agent_session_id,
@@ -172,4 +173,5 @@ class CaseRepository:
             referral_transmissions=data["referral_transmissions"],
             imaging_has_valid_referral=data["imaging_has_valid_referral"],
             sent_messages=data["sent_messages"],
+            calendar_updates=data.get("calendar_updates", []),
         )

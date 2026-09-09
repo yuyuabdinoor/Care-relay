@@ -27,6 +27,7 @@ def test_case_repository_round_trips_graph_evidence_and_world(tmp_path):
     )
     world = SyntheticWorld()
     world.sent_messages.append({"message_type": "test"})
+    world.calendar_updates.append({"backend": "google", "event_id": "event-1"})
     repository = CaseRepository(tmp_path / "care-relay.db")
 
     repository.save(
@@ -55,6 +56,9 @@ def test_case_repository_round_trips_graph_evidence_and_world(tmp_path):
     assert restored["case"].dependencies[0].source_id == "appointment"
     assert len(restored["case"].ledger) == 2
     assert restored["world"].sent_messages == [{"message_type": "test"}]
+    assert restored["world"].calendar_updates == [
+        {"backend": "google", "event_id": "event-1"}
+    ]
     assert restored["stage"] == 1
     assert restored["agent_session_id"] == "care-relay-test-run"
     assert restored["traces"][0]["event"] == "tool_selected"
