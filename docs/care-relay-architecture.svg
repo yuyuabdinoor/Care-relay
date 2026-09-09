@@ -40,7 +40,7 @@
   <rect x="55" y="425" width="1330" height="300" rx="24" class="zone"/>
   <text x="80" y="457" class="zone-title" fill="#536d94">DETERMINISTIC AUTHORITY · APPLICATION CODE</text>
   <rect x="88" y="493" width="250" height="135" rx="18" class="card"/>
-  <text x="112" y="527" class="tag" fill="#2a7255">COORDINATION TOOLS</text><text x="112" y="557" class="node-title">Safe reversible work</text><text x="112" y="583" class="node-copy">Transport · calendar · messages</text><text x="112" y="605" class="node-copy">Synthetic counterparties</text>
+  <text x="112" y="527" class="tag" fill="#2a7255">COORDINATION TOOLS</text><text x="112" y="557" class="node-title">Safe reversible work</text><text x="112" y="583" class="node-copy">Transport · Google Calendar</text><text x="112" y="605" class="node-copy">Real event receipt · synthetic messages</text>
   <rect x="406" y="493" width="250" height="135" rx="18" class="card"/>
   <text x="430" y="527" class="tag" fill="#2a7255">VERIFICATION TOOLS</text><text x="430" y="557" class="node-title">Independent checks</text><text x="430" y="583" class="node-copy">Receipt · destination · acceptance</text><text x="430" y="605" class="node-copy">No correction capability</text>
   <rect x="748" y="483" width="330" height="178" rx="18" class="card engine"/>

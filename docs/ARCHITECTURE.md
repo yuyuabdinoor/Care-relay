@@ -10,9 +10,11 @@ code decides whether dates, permissions, evidence, and state transitions are val
 flowchart LR
     E["Synthetic provider event"] --> C["Strands Visit Coordinator<br/>Claude Sonnet 4.6 on Bedrock"]
     C -->|"agents-as-tools delegation"| V["Strands Verification Agent<br/>verification-only permissions"]
-    C --> CT["Coordination tools<br/>transport · calendar · messaging"]
+    C --> CT["Coordination tools<br/>transport · Google Calendar · messaging"]
     V --> VT["Verification tools<br/>receipt check · transmission inspection"]
     CT --> D["Deterministic policy and state engine"]
+    CT -->|"idempotent event patch"| GC["Google Calendar API<br/>synthetic demo calendar"]
+    GC -->|"provider receipt"| D
     VT --> D
     D --> G["Care Relay causal dependency graph<br/>application logic, not Strands Graph"]
     D --> L["Evidence and immutable action ledger"]
