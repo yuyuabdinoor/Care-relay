@@ -70,7 +70,7 @@ The goal is not to automate medical judgment. It is to reduce coordination betwe
 
 ### What’s next
 
-Future work would replace the synthetic counterparties with consented integrations, move persistence to managed AWS infrastructure, and deploy the runtime with a least-privilege execution role. Care Relay will remain limited to administrative coordination; it will not diagnose conditions, recommend treatment, change medication, or determine medical urgency.
+Future work would replace the remaining synthetic counterparties with consented integrations and move SQLite persistence to a managed AWS datastore. Care Relay will remain limited to administrative coordination; it will not diagnose conditions, recommend treatment, change medication, or determine medical urgency.
 
 ## Built with tags
 
@@ -86,18 +86,22 @@ Future work would replace the synthetic counterparties with consented integratio
 - CSS
 - Docker
 - AWS
+- AWS App Runner
+- Amazon ECR
+- AWS CodeBuild
+- AWS Secrets Manager
 
 ## Try it out links
 
 - Source code: https://github.com/yuyuabdinoor/Care-relay
 - Demo video: ADD_PUBLIC_YOUTUBE_URL
-- Live demo: ADD_PUBLIC_DEMO_URL_IF_DEPLOYED
+- Live demo: https://yfbp3mfwxp.us-east-1.awsapprunner.com/
 
 ## Testing instructions
 
 The demonstration uses only fictional people, messages, identifiers, and counterparties.
 
-1. Open the live demo and choose **Receive provider update**.
+1. Open the live demo, choose **Reset demonstration**, then choose **Receive provider update**.
 2. Watch the appointment change invalidate transportation and follow-up commitments.
 3. Wait while the Strands Coordinator repairs permitted work and delegates the referral dispute to the restricted Verification Agent.
 4. At 75% readiness, review the protected-disclosure request. Choose **Approve & send** to resume the preserved run, or **Decline** to confirm that the external correction does not execute.

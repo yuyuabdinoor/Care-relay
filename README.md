@@ -14,6 +14,8 @@ verified.
 
 Built for the **Everyday Agents** track of the Agents for Humans Hackathon.
 
+**[Open the live Care Relay demo](https://yfbp3mfwxp.us-east-1.awsapprunner.com/)**
+
 ## Potential impact
 
 Family care coordination is not an occasional edge case. The
@@ -73,11 +75,11 @@ counterparties.
 - Structured Strands lifecycle and tool traces with sensitive input values redacted.
 - Unstructured external-message ingestion with explicit prompt-injection boundaries.
 - Idempotent external tools that tolerate agent, network, and checkpoint retries.
-- Optional Google Calendar adapter that updates one real synthetic follow-up event and
+- Google Calendar adapter that updates one real synthetic follow-up event and
   records the provider response before the commitment can become verified.
 - Deterministic standing-permission policy for autonomous, approval, and denied actions.
 - AgentCore-compatible `/ping` and `/invocations` runtime contract.
-- Non-root Python 3.12 container scaffold for ARM64 deployment.
+- Non-root Python 3.12 container deployed through ECR and AWS App Runner.
 - A single live execution path through Strands Agents and Amazon Bedrock.
 
 ## Quick start
@@ -208,11 +210,16 @@ than autonomy.
 
 ## AWS deployment
 
-The service can run locally on port 8000 or as an AgentCore-compatible runtime
-on port 8080. See [docs/AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md) for the
-current CodeZip and ARM64 container paths. Bedrock access has been validated with
-Claude Sonnet 4.6. Deployment remains manual until least-privilege runtime roles
-are in place.
+The [public service](https://yfbp3mfwxp.us-east-1.awsapprunner.com/) runs as a
+non-root container on AWS App Runner. CodeBuild builds the public GitHub source,
+ECR stores the image, Secrets Manager injects the Google service-account JSON,
+and a least-privilege instance role can invoke only the configured Bedrock model
+and read that one secret. The App Runner service is pinned to one instance because
+this hackathon MVP persists resumable state in SQLite.
+
+The same service implements the AgentCore-compatible `/ping` and `/invocations`
+contract on port 8080. See [docs/AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md) for
+the deployment boundary and production follow-ons.
 
 ## Development disclosure
 

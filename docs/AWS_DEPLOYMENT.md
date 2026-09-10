@@ -1,7 +1,8 @@
 # AWS deployment
 
-Care Relay targets Amazon Bedrock AgentCore Runtime. The same FastAPI service
-used by the local dashboard implements the AgentCore HTTP contract:
+Care Relay is deployed as a non-root container on AWS App Runner. The same
+FastAPI service used by the local dashboard also implements the AgentCore HTTP
+contract:
 
 - `GET /ping`
 - `POST /invocations`
@@ -16,35 +17,32 @@ persistence adapter remains the production replacement for local SQLite.
 - AWS account verification completed
 - Bedrock model access in the deployment region
 - AWS CLI profile with temporary, least-privilege credentials
-- Node.js 20+, AWS CDK, and the AgentCore CLI
-- Docker Buildx only when using the container deployment method
+- A least-privilege deployment role
+- Docker locally, or AWS CodeBuild for a managed container build
 
 Avoid deploying with root-user credentials. Create a dedicated deployment role
 and a separate runtime execution role.
 
-## Recommended quick deployment
+## Current hackathon deployment
 
-The current AgentCore CLI supports direct Python code deployment and container
-deployment. Start with the production template and Python 3.12:
+The public hackathon service uses this path:
 
-```bash
-npm install -g @aws/agentcore
-agentcore create
-agentcore dev --no-browser
-agentcore deploy
-```
+1. AWS CodeBuild clones the public repository and builds the Dockerfile.
+2. The image is pushed to a private ECR repository with scan-on-push enabled.
+3. App Runner pulls the image through its ECR access role.
+4. An App Runner instance role invokes the configured Bedrock model and reads one
+   Google Calendar credential from Secrets Manager.
+5. App Runner runs exactly one instance because this MVP uses SQLite and resumable
+   local Strands session state.
 
-During `agentcore create`, select Strands Agents, Bedrock, and CodeZip for the
-fastest hackathon iteration. Keep this repository's application modules as the
-source of truth rather than accepting a second generated agent implementation.
+No AWS credentials or Google key files are baked into the image. The deployment
+uses `GOOGLE_SERVICE_ACCOUNT_JSON` as a secret-backed runtime environment value.
 
-## Container path
-
-AgentCore container images must target ARM64:
+## Local container path
 
 ```bash
-docker buildx build --platform linux/arm64 -t care-relay:arm64 --load .
-docker run --rm -p 8080:8080 --env-file .env care-relay:arm64
+docker build -t care-relay .
+docker run --rm -p 8080:8080 --env-file .env care-relay
 curl http://127.0.0.1:8080/ping
 curl -X POST http://127.0.0.1:8080/invocations \
   -H 'content-type: application/json' \
