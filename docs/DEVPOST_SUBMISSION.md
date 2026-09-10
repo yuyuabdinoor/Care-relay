@@ -94,7 +94,7 @@ Future work would replace the remaining synthetic counterparties with consented 
 ## Try it out links
 
 - Source code: https://github.com/yuyuabdinoor/Care-relay
-- Demo video: ADD_PUBLIC_YOUTUBE_URL
+- Demo video: https://youtu.be/cVfA2z2iM-E
 - Live demo: https://yfbp3mfwxp.us-east-1.awsapprunner.com/
 
 ## Testing instructions

@@ -14,7 +14,8 @@ verified.
 
 Built for the **Everyday Agents** track of the Agents for Humans Hackathon.
 
-**[Open the live Care Relay demo](https://yfbp3mfwxp.us-east-1.awsapprunner.com/)**
+**[Open the live Care Relay demo](https://yfbp3mfwxp.us-east-1.awsapprunner.com/)** ·
+**[Watch the 2:54 demo video](https://youtu.be/cVfA2z2iM-E)**
 
 ## Potential impact
 
