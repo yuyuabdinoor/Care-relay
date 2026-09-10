@@ -88,6 +88,16 @@ Requires Python 3.11+.
 python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
+cp .env.example .env
+```
+
+Set `AWS_PROFILE` in `.env` to a named, non-root AWS CLI profile that can invoke
+the configured Bedrock inference profile. The example uses
+`care-relay-bedrock`; replace it with your own profile name when necessary.
+Confirm the active identity before running the product:
+
+```bash
+aws sts get-caller-identity --profile care-relay-bedrock
 ```
 
 Launch the interactive command center:

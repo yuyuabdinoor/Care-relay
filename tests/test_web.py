@@ -4,6 +4,7 @@ from threading import Event
 import pytest
 from fastapi.testclient import TestClient
 
+from care_relay.calendar import DemoCalendarGateway
 from care_relay.engine import InvalidTransition
 from care_relay.observability import TraceCollector
 from care_relay.repository import CaseRepository
@@ -15,6 +16,9 @@ from care_relay.web import (
     _public_runtime_error,
     app,
 )
+from care_relay.web import (
+    session as web_session,
+)
 
 
 def test_runtime_errors_are_safe_and_actionable():
@@ -22,14 +26,19 @@ def test_runtime_errors_are_safe_and_actionable():
     unknown = RuntimeError("provider request abc-123 failed with internal payload")
 
     assert _public_runtime_error(expired) == (
-        "AWS session expired. Run 'aws login', then reset and retry the demo."
+        "AWS credentials expired. Refresh the named profile, then reset and retry the demo."
     )
     assert "abc-123" not in _public_runtime_error(unknown)
 
 
-def test_dashboard_exposes_live_agent_path_only():
+def test_dashboard_exposes_live_agent_path_only(monkeypatch):
+    monkeypatch.setattr(web_session, "calendar_gateway", DemoCalendarGateway())
     client = TestClient(app)
-    assert "Care work isn’t complete" in client.get("/").text
+    homepage = client.get("/").text
+    assert "Care work isn’t complete" in homepage
+    assert "Sep 11 · 11:00 AM" in homepage
+    assert "Sep 15 · 11:00 AM" in homepage
+    assert "Sep 13 · 11:00 AM" not in homepage
     demo = client.get("/demo").text
     assert "What must be true before the visit" in demo
     assert "Simulate incoming provider update" in demo

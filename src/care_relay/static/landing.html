@@ -50,7 +50,25 @@
         </article>
         <article class="care-node node-transport" data-node="transport"><div class="node-top"><span>TRANSPORT</span><i class="node-state state-verified">✓ VERIFIED</i></div><strong>Marcus driving</strong><p>Pickup · 9:15 AM</p><em>Old ride no longer fits</em></article>
         <article class="care-node node-referral" data-node="referral"><div class="node-top"><span>REFERRAL</span><i class="node-state state-claimed">“ ” CLAIMED</i></div><strong>“Sent to Imaging”</strong><p>Riverside Family Clinic</p><em>Destination disputed</em></article>
-        <article class="care-node node-followup" data-node="followup"><div class="node-top"><span>FOLLOW-UP</span><i class="node-state state-verified">✓ VERIFIED</i></div><strong>Sep 13 · 11:00 AM</strong><p>Within required 7-day window</p><em>Window needs recalculation</em></article>
+        <article class="care-node node-followup" data-node="followup">
+          <div class="node-top">
+            <span>FOLLOW-UP</span>
+            <i class="node-state followup-state">
+              <span class="followup-original">✓ VERIFIED</span>
+              <span class="followup-invalid">! INVALIDATED</span>
+              <span class="followup-repaired">✓ VERIFIED</span>
+            </i>
+          </div>
+          <strong class="followup-time">
+            <span class="followup-original">Sep 11 · 11:00 AM</span>
+            <span class="followup-repaired">Sep 15 · 11:00 AM</span>
+          </strong>
+          <p class="followup-copy">
+            <span class="followup-original">Valid after Sep 10 imaging</span>
+            <span class="followup-repaired">Rescheduled after imaging</span>
+          </p>
+          <em>Now occurs before imaging</em>
+        </article>
         <article class="care-node node-caregiver" data-node="caregiver"><div class="node-top"><span>CAREGIVER</span><i class="node-state state-available">○ AVAILABLE</i></div><strong>Aisha</strong><p>Human authority for protected actions</p></article>
       </section>
 

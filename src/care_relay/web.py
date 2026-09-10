@@ -38,7 +38,7 @@ def _public_runtime_error(exc: Exception) -> str:
     """Return a useful demo-safe message without exposing provider internals."""
     detail = f"{type(exc).__name__}: {exc}".lower()
     if "loginrefreshrequired" in detail or "session has expired" in detail:
-        return "AWS session expired. Run 'aws login', then reset and retry the demo."
+        return "AWS credentials expired. Refresh the named profile, then reset and retry the demo."
     if "accessdenied" in detail or "not authorized" in detail:
         return "Bedrock access was denied. Confirm the AWS profile and model access, then retry."
     if "throttl" in detail:
