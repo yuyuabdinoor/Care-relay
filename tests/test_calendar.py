@@ -10,6 +10,7 @@ from care_relay.calendar import (
 
 def test_calendar_gateway_defaults_to_demo_without_configuration(monkeypatch):
     monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_JSON", raising=False)
     monkeypatch.delenv("CARE_RELAY_GOOGLE_CALENDAR_ID", raising=False)
     monkeypatch.delenv("CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID", raising=False)
 
@@ -18,10 +19,40 @@ def test_calendar_gateway_defaults_to_demo_without_configuration(monkeypatch):
 
 def test_partial_google_calendar_configuration_fails_closed(monkeypatch):
     monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/key.json")
+    monkeypatch.delenv("GOOGLE_SERVICE_ACCOUNT_JSON", raising=False)
     monkeypatch.delenv("CARE_RELAY_GOOGLE_CALENDAR_ID", raising=False)
     monkeypatch.delenv("CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID", raising=False)
 
     with pytest.raises(CalendarUpdateError, match="configuration is incomplete"):
+        calendar_gateway_from_env()
+
+
+def test_google_calendar_can_load_service_account_from_secret_json(monkeypatch):
+    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    monkeypatch.setenv(
+        "GOOGLE_SERVICE_ACCOUNT_JSON",
+        '{"type":"service_account","client_email":"demo@example.com"}',
+    )
+    monkeypatch.setenv("CARE_RELAY_GOOGLE_CALENDAR_ID", "calendar-id")
+    monkeypatch.setenv("CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID", "event-id")
+
+    gateway = calendar_gateway_from_env()
+
+    assert isinstance(gateway, GoogleCalendarGateway)
+    assert gateway.credentials_path is None
+    assert gateway.credentials_info == {
+        "type": "service_account",
+        "client_email": "demo@example.com",
+    }
+
+
+def test_google_calendar_rejects_multiple_credential_sources(monkeypatch):
+    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/key.json")
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_JSON", '{"type":"service_account"}')
+    monkeypatch.setenv("CARE_RELAY_GOOGLE_CALENDAR_ID", "calendar-id")
+    monkeypatch.setenv("CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID", "event-id")
+
+    with pytest.raises(CalendarUpdateError, match="multiple credential sources"):
         calendar_gateway_from_env()
 
 

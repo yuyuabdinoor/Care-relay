@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -70,11 +71,33 @@ class GoogleCalendarGateway:
 
     backend = "google"
 
-    def __init__(self, *, credentials_path: str, calendar_id: str, event_id: str) -> None:
-        path = Path(credentials_path).expanduser()
-        if not path.is_file():
-            raise CalendarUpdateError(f"Google credential file was not found: {path}")
-        self.credentials_path = str(path)
+    def __init__(
+        self,
+        *,
+        calendar_id: str,
+        event_id: str,
+        credentials_path: str | None = None,
+        credentials_json: str | None = None,
+    ) -> None:
+        if bool(credentials_path) == bool(credentials_json):
+            raise CalendarUpdateError(
+                "Configure exactly one Google credential source: file path or secret JSON"
+            )
+        self.credentials_path: str | None = None
+        self.credentials_info: dict[str, Any] | None = None
+        if credentials_path:
+            path = Path(credentials_path).expanduser()
+            if not path.is_file():
+                raise CalendarUpdateError(f"Google credential file was not found: {path}")
+            self.credentials_path = str(path)
+        else:
+            try:
+                parsed = json.loads(credentials_json or "")
+            except json.JSONDecodeError as exc:
+                raise CalendarUpdateError("Google credential secret is not valid JSON") from exc
+            if not isinstance(parsed, dict) or parsed.get("type") != "service_account":
+                raise CalendarUpdateError("Google credential secret is not a service account")
+            self.credentials_info = parsed
         self.calendar_id = calendar_id
         self.event_id = event_id
 
@@ -86,10 +109,16 @@ class GoogleCalendarGateway:
             raise CalendarUpdateError(
                 "Google Calendar dependencies are missing; reinstall Care Relay dependencies"
             ) from exc
-        credentials = service_account.Credentials.from_service_account_file(
-            self.credentials_path,
-            scopes=[GOOGLE_CALENDAR_SCOPE],
-        )
+        if self.credentials_info is not None:
+            credentials = service_account.Credentials.from_service_account_info(
+                self.credentials_info,
+                scopes=[GOOGLE_CALENDAR_SCOPE],
+            )
+        else:
+            credentials = service_account.Credentials.from_service_account_file(
+                self.credentials_path,
+                scopes=[GOOGLE_CALENDAR_SCOPE],
+            )
         return build("calendar", "v3", credentials=credentials, cache_discovery=False)
 
     @staticmethod
@@ -155,14 +184,26 @@ def calendar_gateway_from_env() -> CalendarGateway:
     """Select Google only when its complete, explicit configuration is present."""
     values = {
         "credentials_path": os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "").strip(),
+        "credentials_json": os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip(),
         "calendar_id": os.getenv("CARE_RELAY_GOOGLE_CALENDAR_ID", "").strip(),
         "event_id": os.getenv("CARE_RELAY_GOOGLE_FOLLOW_UP_EVENT_ID", "").strip(),
     }
     if not any(values.values()):
         return DemoCalendarGateway()
-    missing = [name for name, value in values.items() if not value]
+    credential_sources = [
+        name for name in ("credentials_path", "credentials_json") if values[name]
+    ]
+    if len(credential_sources) > 1:
+        raise CalendarUpdateError(
+            "Google Calendar configuration has multiple credential sources"
+        )
+    missing = [name for name in ("calendar_id", "event_id") if not values[name]]
+    if not credential_sources:
+        missing.insert(0, "credentials_path or credentials_json")
     if missing:
         raise CalendarUpdateError(
             "Google Calendar configuration is incomplete: " + ", ".join(missing)
         )
+    values["credentials_path"] = values["credentials_path"] or None
+    values["credentials_json"] = values["credentials_json"] or None
     return GoogleCalendarGateway(**values)
